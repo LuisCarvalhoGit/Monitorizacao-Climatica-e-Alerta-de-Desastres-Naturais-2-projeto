@@ -1,12 +1,1 @@
-import requests
 
-
-def get_weather_data(api_key, location):
-    base_url = "http://api.weatherapi.com/v1/current.json"
-    params = {
-        "key": api_key,
-        "q": location
-    }
-    response = requests.get(base_url, params=params)
-    data = response.json()
-    return data
