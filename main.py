@@ -19,12 +19,16 @@ def get_weather_data(api_key, cidade, unidade):
     if response['cod'] == '404':
         print("Cidade nao encontrada")
     else:
-        temp = response["main"]["temp"]
+        temp = response['main']['temp']
+        temp_feels_like = response ['main']['feels_like']
         wind_speed = response['wind']['speed']
         humidade = response['main']['humidity']
+        quant_nuvens = response['clouds']['all']
         print(f"Temperatura em {cidade}(ºC): {temp:.2f} ºC")
+        print(f"Sensação Termica em {cidade}(ºC): {temp_feels_like:.2f} ºC")
         print(f"Velocidade do Vento em {cidade}: {wind_speed} m/s")
         print(f"Humidade em {cidade}: {humidade}")
+        print(f"Quantidade de Nuvens em {cidade}: {quant_nuvens}")
 
 
 
