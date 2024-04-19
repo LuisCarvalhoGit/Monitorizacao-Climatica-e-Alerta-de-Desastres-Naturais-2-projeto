@@ -1,14 +1,8 @@
 import requests
 import customtkinter
 import tkinter
-import datetime as dt
 import pandas as pd
 import matplotlib as mp
-
-def kelvin_to_celsius_fahrenheit(kelvin):
-    celsius = kelvin - 273.15
-    fahrenheit = celsius * (9/5) + 32
-    return celsius,fahrenheit
 
 def get_weather_data(api_key, cidade, unidade):
     base_url = "https://api.openweathermap.org/data/2.5/weather?"
