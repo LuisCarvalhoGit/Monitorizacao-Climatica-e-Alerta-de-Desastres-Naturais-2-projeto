@@ -29,7 +29,7 @@ def get_weather_data(api_key, cidade, unidade):
 
 
         global df
-        df = df.append({'Cidade': cidade,
+        df = df._append({'Cidade': cidade,
                         'Temperatura': temp,
                         'Sensação Termica': temp_feels_like,
                         'Velocidade do Vento': wind_speed,
