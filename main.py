@@ -3,6 +3,9 @@ import customtkinter
 import tkinter
 import pandas as pd
 import matplotlib as mp
+from plyer  import notification
+
+df = pd.DataFrame(columns=['Cidade','Temperatura','Sensação Termica','Velocidade do Vento','Humidade','Quantidade de Nuvens'])
 
 def get_weather_data(api_key, cidade, unidade):
     base_url = "https://api.openweathermap.org/data/2.5/weather?"
@@ -25,13 +28,21 @@ def get_weather_data(api_key, cidade, unidade):
         print(f"Quantidade de Nuvens em {cidade}: {quant_nuvens}")
 
 
+        global df
+        df = df.append({'Cidade': cidade,
+                        'Temperatura': temp,
+                        'Sensação Termica': temp_feels_like,
+                        'Velocidade do Vento': wind_speed,
+                        'Humidade':humidade,
+                        'Quantidade de Nuvens':quant_nuvens},
+                         ignore_index=True)
+
 
 get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real,PT", "metric")  # usar com cuidado, existe limite
 
-
+print(df)
 #   "https://api.openweathermap.org/data/2.5/weather?lat=41.295900&lon=-7.746350&appid=8ba62249b68f6b02f4cc69cae7495cb3" para ver Vila Real, PT em JSON
 
 # Latitule Vila Real,PT -> 41.295900 , Longitude Vila Real,PT -> -7.746350
-
 
 
