@@ -1,4 +1,4 @@
-import irequests
+import requests
 import customtkinter
 import tkinter
 import pandas as pd
