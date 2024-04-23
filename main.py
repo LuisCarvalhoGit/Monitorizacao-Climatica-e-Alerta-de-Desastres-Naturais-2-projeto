@@ -3,7 +3,7 @@ import customtkinter
 import tkinter
 import pandas as pd
 import matplotlib as mp
-from plyer  import notification
+import smtplib
 
 df = pd.DataFrame(columns=['Cidade','Temperatura','Sensação Termica','Velocidade do Vento','Humidade','Quantidade de Nuvens'])
 
