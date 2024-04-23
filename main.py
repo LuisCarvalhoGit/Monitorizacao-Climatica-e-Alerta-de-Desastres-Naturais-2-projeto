@@ -41,6 +41,27 @@ def get_weather_data(api_key, cidade, unidade):
 get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real,PT", "metric")  # usar com cuidado, existe limite
 
 print(df)
+
+
+def send_notification_to_email(subject, message, to_email, from_email="your-email@example.com", password="your-password"):
+    # Set up the SMTP server
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+
+    # Log in to the server
+    server.login(from_email, password)
+
+    # Create the email
+    email_message = f"Subject: {subject}\n\n{message}"
+
+    # Send the email
+    server.sendmail(from_email, to_email, email_message)
+
+    # Close the connection to the server
+    server.quit()
+
+# Usage
+send_notification_to_email("Hello", "This is a test email", "user-email@example.com")
 #   "https://api.openweathermap.org/data/2.5/weather?lat=41.295900&lon=-7.746350&appid=8ba62249b68f6b02f4cc69cae7495cb3" para ver Vila Real, PT em JSON
 
 # Latitule Vila Real,PT -> 41.295900 , Longitude Vila Real,PT -> -7.746350
