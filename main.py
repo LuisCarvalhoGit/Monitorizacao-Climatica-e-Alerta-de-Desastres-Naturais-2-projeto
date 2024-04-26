@@ -1,5 +1,5 @@
 import requests
-import customtkinter
+import customtkinter as ctk
 import tkinter
 import pandas as pd
 import matplotlib as mp
@@ -23,12 +23,6 @@ def get_weather_data(api_key, cidade, unidade):
         weather_data['humidade'] = response['main']['humidity']
         weather_data['quant_nuvens'] = response['clouds']['all']
 
-        print(f"Temperatura em {cidade}(ºC): {weather_data['temp']:.2f} ºC")
-        print(f"Sensação Termica em {cidade}(ºC): {weather_data['temp_feels_like']:.2f} ºC")
-        print(f"Velocidade do Vento em {cidade}: {weather_data['wind_speed']} m/s")
-        print(f"Humidade em {cidade}: {weather_data['humidade']}")
-        print(f"Quantidade de Nuvens em {cidade}: {weather_data['quant_nuvens']}")
-
     return weather_data
 def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
     weather_data_list = []
@@ -36,31 +30,30 @@ def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
         weather_data = get_weather_data(api_key, cidade, unidade)
         weather_data_list.append(weather_data)
         time.sleep(interval)
-    return weather_data_list
+    return pd.DataFrame(weather_data_list)
 
-def analyze_weather_data(weather_data):
-    if not weather_data:
+def analyze_weather_data(weather_data_df):
+    if weather_data_df.empty:
         print("Nenhum dado de clima disponível para análise.")
         return
 
     print(f"Análise dos dados do clima:")
-    print(f"Temperatura média: {weather_data['temp']} ºC")
-    print(f"Sensação térmica média: {weather_data['temp_feels_like']} ºC")
-    print(f"Velocidade média do vento: {weather_data['wind_speed']} m/s")
-    print(f"Humidade média: {weather_data['humidade']}")
-    print(f"Quantidade média de nuvens: {weather_data['quant_nuvens']}")
+    print(f"Temperatura média: {weather_data_df['temp'].mean()} ºC")
+    print(f"Sensação térmica média: {weather_data_df['temp_feels_like'].mean()} ºC")
+    print(f"Velocidade média do vento: {weather_data_df['wind_speed'].mean()} m/s")
+    print(f"Humidade média: {weather_data_df['humidade'].mean()}")
+    print(f"Quantidade média de nuvens: {weather_data_df['quant_nuvens'].mean()}")
 
 # Exemplo de uso:
 # weather_data = get_weather_data(api_key, cidade, unidade)
 # analyze_weather_data(weather_data)
 
 
+#weather_data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 3, 10)
+#print(weather_data_df)
+#analyze_weather_data(weather_data_df)
 
-get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 10, 60)
-
-
-weather_data=get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real,PT", "metric")  # usar com cuidado, existe limite
-analyze_weather_data(weather_data)
+#analyze_weather_data(weather_data)
 
 
 #   "https://api.openweathermap.org/data/2.5/weather?lat=41.295900&lon=-7.746350&appid=8ba62249b68f6b02f4cc69cae7495cb3" para ver Vila Real, PT em JSON
