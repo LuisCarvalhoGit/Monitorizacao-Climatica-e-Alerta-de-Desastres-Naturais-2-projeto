@@ -163,8 +163,47 @@ def send_notification_to_email(subject, message, to_email, from_email="your-emai
     # Close the connection to the server
     server.quit()
 
-# Usage
-send_notification_to_email("Hello", "This is a test email", "user-email@example.com")
+
+
+
+def criar_interface():
+    # Criando a janela principal
+
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("dark-blue")
+    janela = ctk.CTk()
+    janela.geometry("500x300")
+    janela.title('Interface Gráfica')
+
+    # Adicionando um rótulo
+    rotulo = ctk.CTkLabel(janela, text='Nome da cidade:')
+    rotulo.pack()
+
+
+    # Adicionando um campo de entrada de texto
+    campo_texto = ctk.CTkEntry(janela)
+    campo_texto.pack()
+
+    # Função para lidar com o evento do botão
+    def mostrar_nome():
+        nome_cidade = campo_texto.get()
+        print('Nome da cidade:', nome_cidade)
+
+        # Aqui você pode chamar as suas funções para obter e analisar os dados meteorológicos
+        weather_data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", nome_cidade, "metric", 3, 10)
+        print(weather_data_df)
+        analyze_weather_data(weather_data_df)
+
+    # Adicionando um botão
+    botao = ctk.CTkButton(janela, text='Obter dados meteorológicos', command=mostrar_nome)
+    botao.pack()
+
+    # Iniciando o loop principal da GUI
+    janela.mainloop()
+
+# Chamar a função para criar a interface
+#criar_interface()
+
 
 
 
