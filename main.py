@@ -64,6 +64,16 @@ def get_data_from_db():
     conn.close()
     return data
 
+def get_dataframe_from_db():
+    try:
+        conn = sqlite3.connect('weather_data.db')
+        query = "SELECT * FROM weather_data"
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        return df
+    except sqlite3.Error as e:
+        print(f"Error reading data from database: {e}")
+
 def delete_row(row_id):
     try:
         conn = sqlite3.connect('weather_data.db')
@@ -178,12 +188,13 @@ def plot_data():
     plt.legend()
     plt.show()
 
+data_df = get_dataframe_from_db()
 
 print_db()
 
 plot_data()
 
-
+analyze_weather_data(data_df)
 
 
 
