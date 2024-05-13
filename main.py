@@ -33,6 +33,25 @@ def insert_data_to_db(data):
     conn.commit()
     conn.close()
 
+def insert_dataframe_into_db(data):
+    try:
+        conn = sqlite3.connect('weather_data.db')
+        cursor = conn.cursor()
+
+        # Iterate over the rows of the DataFrame
+        for index, row in data.iterrows():
+            # Insert each row into the weather_data table
+            cursor.execute("""
+                INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens) 
+                VALUES (?, ?, ?, ?, ?)
+            """, (row['temp'], row['temp_feels_like'], row['wind_speed'], row['humidade'], row['quant_nuvens']))
+
+        conn.commit()
+        conn.close()
+
+        print("DataFrame inserted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error inserting DataFrame: {e}")
 def get_data_from_db():
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
@@ -54,6 +73,21 @@ def delete_row(row_id):
         print(f"Row ID={row_id} deleted successfallay.")
     except sqlite3.Error as e:
         print(f"Error deleting row: {e}")
+
+def delete_all_rows():
+    try:
+        conn = sqlite3.connect('weather_data.db')
+        cursor = conn.cursor()
+
+        # Delete all rows from the weather_data table
+        cursor.execute("DELETE FROM weather_data")
+
+        conn.commit()
+        conn.close()
+
+        print("All rows deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting rows: {e}")
 
 def print_db():
     conn = sqlite3.connect('weather_data.db')
@@ -91,7 +125,6 @@ def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
     for _ in range(num_requests):
         weather_data = get_weather_data(api_key, cidade, unidade)
         weather_data_list.append(weather_data)
-        insert_data_to_db(weather_data)
         time.sleep(interval)
 
     weather_data_df = pd.DataFrame(weather_data_list)
@@ -123,8 +156,10 @@ def checkDisasters(weather_data_df):
         print("Alerta! Condições potenciais de furacão detectadas.")
 
 
-delete_row(5)
+
 print_db()
+
+
 
 
 # Exemplo de uso:
@@ -173,7 +208,7 @@ def criar_interface():
     ctk.set_default_color_theme("dark-blue")
     janela = ctk.CTk()
     janela.geometry("500x300")
-    janela.title('Interface Gráfica')
+    janela.title('Weather')
 
     # Adicionando um rótulo
     rotulo = ctk.CTkLabel(janela, text='Nome da cidade:')
