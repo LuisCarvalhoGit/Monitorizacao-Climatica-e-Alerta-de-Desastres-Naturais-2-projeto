@@ -1,11 +1,12 @@
 import requests
 import customtkinter as ctk
-import tkinter
+import tkinter as tk
 import pandas as pd
 import matplotlib as mp
 import smtplib
 import time
 import sqlite3
+from tabulate import tabulate
 
 def create_db():
     conn = sqlite3.connect('weather_data.db')
@@ -42,20 +43,28 @@ def get_data_from_db():
     conn.close()
     return data
 
+def delete_row(row_id):
+    try:
+        conn = sqlite3.connect('weather_data.db')
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM weather_data WHERE id=?", (row_id,))
+        conn.commit()
+        conn.close()
+
+        print(f"Row ID={row_id} deleted successfallay.")
+    except sqlite3.Error as e:
+        print(f"Error deleting row: {e}")
+
 def print_db():
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM weather_data")
     rows = cursor.fetchall()
 
-    for row in rows:
-        print(
-            f"ID: {row[0]},"
-            f" Temperatura: {row[1]} ºC,"
-            f" Sensação Térmica: {row[2]} ºC,"
-            f" Velocidade do Vento: {row[3]} m/s,"
-            f" Humidade: {row[4]},"
-            f" Quantidade de Nuvens: {row[5]}")
+    headers = ["ID", "Temperatura (ºC)", "Sensação Térmica (ºC)", "Velocidade do Vento (m/s)", "Humidade",
+               "Quantidade de Nuvens"]
+    table = tabulate(rows, headers=headers, tablefmt="pretty")
+    print(table)
 
     conn.close()
 
@@ -113,6 +122,8 @@ def checkDisasters(weather_data_df):
     if weather_data_df['wind_speed'].mean() > limite_vento_furacao:
         print("Alerta! Condições potenciais de furacão detectadas.")
 
+
+delete_row(5)
 print_db()
 
 
@@ -131,17 +142,6 @@ print_db()
 #   "https://api.openweathermap.org/data/2.5/weather?lat=41.295900&lon=-7.746350&appid=8ba62249b68f6b02f4cc69cae7495cb3" para ver Vila Real, PT em JSON
 
 # Latitule Vila Real,PT -> 41.295900 , Longitude Vila Real,PT -> -7.746350
-
-
-
-
-
-
-
-
-
-
-
 
 
 
