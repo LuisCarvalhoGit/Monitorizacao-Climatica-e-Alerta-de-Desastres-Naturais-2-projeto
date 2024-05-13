@@ -179,9 +179,9 @@ def plot_data():
     plt.show()
 
 
-#print_db()
+print_db()
 
-#plot_data()
+plot_data()
 
 
 
