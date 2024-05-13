@@ -2,10 +2,8 @@ import requests
 import customtkinter as ctk
 import tkinter as tk
 import pandas as pd
-import matplotlib.pyplot as plt
-from dateutil import parser
+import matplotlib as mp
 import smtplib
-from email.mime.text import MIMEText
 import time
 import sqlite3
 from tabulate import tabulate
@@ -63,16 +61,6 @@ def get_data_from_db():
     data = cursor.fetchall()
     conn.close()
     return data
-
-def get_dataframe_from_db():
-    try:
-        conn = sqlite3.connect('weather_data.db')
-        query = "SELECT * FROM weather_data"
-        df = pd.read_sql_query(query, conn)
-        conn.close()
-        return df
-    except sqlite3.Error as e:
-        print(f"Error reading data from database: {e}")
 
 def delete_row(row_id):
     try:
@@ -167,35 +155,9 @@ def checkDisasters(weather_data_df):
     if weather_data_df['wind_speed'].mean() > limite_vento_furacao:
         print("Alerta! Condições potenciais de furacão detectadas.")
 
-def plot_data():
-    data = get_data_from_db()
 
-    temp = [row[1] for row in data]
-    temp_feels_like = [row[2] for row in data]
-    wind_speed = [row[3] for row in data]
-    humidade = [row[4] for row in data]
-    quant_nuvens = [row[5] for row in data]
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(temp, label='Temperatura (ºC)')
-    plt.plot(temp_feels_like, label='Sensação Térmica (ºC)')
-    plt.plot(wind_speed, label='Velocidade do Vento (m/s)')
-    plt.plot(humidade, label='Humidade')
-    plt.plot(quant_nuvens, label='Quantidade de Nuvens')
-    plt.title('Weather Data over Time')
-    plt.xlabel('Tempo')
-    plt.ylabel('Valores')
-    plt.legend()
-    plt.show()
-
-data_df = get_dataframe_from_db()
 
 print_db()
-
-plot_data()
-
-analyze_weather_data(data_df)
-
 
 
 
@@ -268,7 +230,7 @@ def criar_interface():
         analyze_weather_data(weather_data_df)
 
     # Adicionando um botão
-    botao = ctk.CTkButton(janela, text='Obter dados meteorológicos', command=plot_data())
+    botao = ctk.CTkButton(janela, text='Obter dados meteorológicos', command=mostrar_nome)
     botao.pack()
 
     # Iniciando o loop principal da GUI
