@@ -194,9 +194,7 @@ def plot_data():
 #data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 10, 7)
 #insert_dataframe_into_db(data_df)
 
-print_db()
 
-plot_data()
 
 
 # Exemplo de uso:
@@ -218,13 +216,15 @@ plot_data()
 
 
 
-def send_notification_to_email(subject, message, to_email, from_email="your-email@example.com", password="your-password"):
+
+# rrol wold diuu dwdx = App Password
+def send_notification_to_email(subject, message, to_email, from_email="alertsweather0@gmail.com", passkey="rrol wold diuu dwdx"):
     # Set up the SMTP server
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
 
     # Log in to the server
-    server.login(from_email, password)
+    server.login(from_email, passkey)
 
     # Create the email
     email_message = f"Subject: {subject}\n\n{message}"
@@ -238,44 +238,39 @@ def send_notification_to_email(subject, message, to_email, from_email="your-emai
 
 
 
+
 def criar_interface():
-    # Criando a janela principal
+    def Recolherdados() :
+        nome = entry_nome.get()
+        email = entry_email.get()
+        print(f"Nome: {nome}, Email: {email}")
 
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("dark-blue")
-    janela = ctk.CTk()
-    janela.geometry("500x300")
-    janela.title('Weather')
 
-    # Adicionando um rótulo
-    rotulo = ctk.CTkLabel(janela, text='Nome da cidade:')
-    rotulo.pack()
+    root = ctk.CTk()
+    root.geometry("600x400")
+    root.title("Formulário de Dados do Utilizador")
+
+    frame = ctk.CTkFrame(master=root)
+    frame.pack(pady=20, padx=60, fill="both", expand=True)
+
+    ctk_label_nome = ctk.CTkLabel(master=frame, text ="Login" ,font=("Roboto",24))
+    ctk_label_nome.pack(pady=20,padx=60)
+
+    entry_nome = ctk.CTkEntry(master=frame, placeholder_text="Nome")
+    entry_nome.pack(pady=12,padx=10)
 
 
-    # Adicionando um campo de entrada de texto
-    campo_texto = ctk.CTkEntry(janela)
-    campo_texto.pack()
+    entry_email = ctk.CTkEntry(master=frame, placeholder_text="Email")
+    entry_email.pack(pady=12,padx=10)
 
-    # Função para lidar com o evento do botão
-    def mostrar_nome():
-        nome_cidade = campo_texto.get()
-        print('Nome da cidade:', nome_cidade)
+    submit_button = ctk.CTkButton(master=frame, text="Submeter", command=Recolherdados)
+    submit_button.pack(pady=25,padx=10)
 
-        # Aqui você pode chamar as suas funções para obter e analisar os dados meteorológicos
-        weather_data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", nome_cidade, "metric", 3, 10)
-        print(weather_data_df)
-        analyze_weather_data(weather_data_df)
+    root.mainloop()
 
-    # Adicionando um botão
-    botao = ctk.CTkButton(janela, text='Obter dados meteorológicos', command=mostrar_nome)
-    botao.pack()
-
-    # Iniciando o loop principal da GUI
-    janela.mainloop()
-
-# Chamar a função para criar a interface
-#criar_interface()
-
+criar_interface()
 
 
 
