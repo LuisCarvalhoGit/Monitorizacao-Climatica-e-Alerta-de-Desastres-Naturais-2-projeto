@@ -2,13 +2,13 @@ import requests
 import customtkinter as ctk
 import tkinter as tk
 import pandas as pd
-import matplotlib as mp
 import matplotlib.pyplot as plt
-from dateutil import parser
 import smtplib
 import time
 import sqlite3
 from tabulate import tabulate
+
+
 
 def create_db():
     conn = sqlite3.connect('weather_data.db')
@@ -240,23 +240,35 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
 
 
 def criar_interface():
-    def Recolherdados() :
+    def Recolherdados():
+
         nome = entry_nome.get()
         email = entry_email.get()
-        print(f"Nome: {nome}, Email: {email}")
+
+        weather_interface = ctk.CTk(fg_color='#63a5db')
+        weather_interface.geometry("600x400")
+        weather_interface.title("Metereologia")
+        frame =ctk.CTkFrame(master=weather_interface,fg_color='#dadde0')
+        frame.pack(pady=20, padx=60, fill="both", expand=True)
+        new_label = ctk.CTkLabel(master=frame, text=f"Nome: {nome}\nEmail: {email}",font=('Roboto',25),text_color='black')
+        new_label.pack(pady=20, anchor='w')
+
+        weather_interface.mainloop()
+
+
 
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("dark-blue")
 
     root = ctk.CTk()
-    root.geometry("600x400")
+    root.geometry("500x300")
     root.title("Formulário de Dados do Utilizador")
 
     frame = ctk.CTkFrame(master=root)
     frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    ctk_label_nome = ctk.CTkLabel(master=frame, text ="Login" ,font=("Roboto",24))
-    ctk_label_nome.pack(pady=20,padx=60)
+    ctk_label_nome = ctk.CTkLabel(master=frame, text ="Formulário de Entrada" ,font=("Roboto",26))
+    ctk_label_nome.pack(pady=12,padx=10)
 
     entry_nome = ctk.CTkEntry(master=frame, placeholder_text="Nome")
     entry_nome.pack(pady=12,padx=10)
@@ -266,11 +278,16 @@ def criar_interface():
     entry_email.pack(pady=12,padx=10)
 
     submit_button = ctk.CTkButton(master=frame, text="Submeter", command=Recolherdados)
-    submit_button.pack(pady=25,padx=10)
+    submit_button.pack(pady=12,padx=10)
+
+    remember_me_checkbox = ctk.CTkCheckBox(master=frame,text='Lembrar-se de mim',font=('Roboto',15))
+    remember_me_checkbox.pack(pady=12,padx=10)
 
     root.mainloop()
 
 criar_interface()
+
+
 
 
 
