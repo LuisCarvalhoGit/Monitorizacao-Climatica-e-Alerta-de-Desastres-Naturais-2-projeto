@@ -42,17 +42,22 @@ def criar_interface():
             axs[1].set_title('Sensação Térmica')
             axs[1].set_ylabel('Temperatura (ºC)')
 
-            axs[2].plot(wind_speed, color='green')
-            axs[2].set_title('Velocidade do vento')
-            axs[2].set_ylabel('Velocidade (m/s)')
+            axs[2].plot(quant_nuvens, color='purple')
+            axs[2].set_title('Pressão')
+            axs[2].set_ylabel('Pressão')
 
-            axs[3].plot(humidade, color='red')
-            axs[3].set_title('Humidade')
-            axs[3].set_ylabel('Humidade (%)')
 
-            axs[4].plot(quant_nuvens, color='purple')
-            axs[4].set_title('Quantidade média de nuvens')
-            axs[4].set_ylabel('Quantidade de Nuvens (%)')
+            axs[3].plot(wind_speed, color='green')
+            axs[3].set_title('Velocidade do vento')
+            axs[3].set_ylabel('Velocidade (m/s)')
+
+            axs[4].plot(humidade, color='red')
+            axs[4].set_title('Humidade')
+            axs[4].set_ylabel('Humidade (%)')
+
+            axs[5].plot(quant_nuvens, color='purple')
+            axs[5].set_title('Quantidade média de nuvens')
+            axs[5].set_ylabel('Quantidade de Nuvens (%)')
 
             # Set the title for the entire figure
             fig.suptitle('Weather Data over Time', fontsize=16)
