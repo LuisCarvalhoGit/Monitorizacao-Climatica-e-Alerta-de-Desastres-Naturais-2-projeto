@@ -16,6 +16,56 @@ def criar_interface():
             time_label.configure(text=current_time)
 
 
+                def plot_data():
+            # Fetch data from the database
+            data = get_data_from_db()
+
+            # Separate the data into different lists
+            temp = [row[1] for row in data]
+            temp_feels_like = [row[2] for row in data]
+            wind_speed = [row[3] for row in data]
+            humidade = [row[4] for row in data]
+            quant_nuvens = [row[5] for row in data]
+
+            # Set the style of the plots
+            sns.set_style("whitegrid")
+
+            # Create a figure and a set of subplots
+            fig, axs = plt.subplots(5, 1, figsize=(10, 20))
+
+            # Plot the data
+            axs[0].plot(temp, color='blue')
+            axs[0].set_title('Temperatura')
+            axs[0].set_ylabel('Temperatura (ºC)')
+
+            axs[1].plot(temp_feels_like, color='orange')
+            axs[1].set_title('Sensação Térmica')
+            axs[1].set_ylabel('Temperatura (ºC)')
+
+            axs[2].plot(wind_speed, color='green')
+            axs[2].set_title('Velocidade do vento')
+            axs[2].set_ylabel('Velocidade (m/s)')
+
+            axs[3].plot(humidade, color='red')
+            axs[3].set_title('Humidade')
+            axs[3].set_ylabel('Humidade (%)')
+
+            axs[4].plot(quant_nuvens, color='purple')
+            axs[4].set_title('Quantidade média de nuvens')
+            axs[4].set_ylabel('Quantidade de Nuvens (%)')
+
+            # Set the title for the entire figure
+            fig.suptitle('Weather Data over Time', fontsize=16)
+
+            # Adjust the layout
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+            # Show the plot
+            plt.show()
+
+
+
+
 
         # Check if the name is in the correct format (only letters and spaces)
         if not re.match("^[a-zA-Z ]+$", nome):
@@ -105,30 +155,7 @@ def criar_interface():
 
         weather_interface.mainloop()
 
-    def plot_data():
-        # Fetch data from the database
-        data = get_data_from_db()
-
-        # Separate the data into different lists
-        temp = [row[1] for row in data]
-        temp_feels_like = [row[2] for row in data]
-        wind_speed = [row[3] for row in data]
-        humidade = [row[4] for row in data]
-        quant_nuvens = [row[5] for row in data]
-
-        # Plot the data
-        plt.figure(figsize=(10, 6))
-        plt.plot(temp, label='Temperatura')
-        plt.plot(temp_feels_like, label='Sensação Térmica')
-        plt.plot(wind_speed, label='Velocidade do vento')
-        plt.plot(humidade, label='Humidade')
-        plt.plot(quant_nuvens, label='Quantidade média de nuvens')
-        plt.title('Weather Data over Time')
-        plt.xlabel('Tempo')
-        plt.ylabel('Valores')
-        plt.legend()
-        plt.show()
-
+    
 
 
     ctk.set_appearance_mode("dark")
