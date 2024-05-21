@@ -1,6 +1,5 @@
 import requests
 import customtkinter as ctk
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import smtplib
@@ -9,6 +8,7 @@ import sqlite3
 from tabulate import tabulate
 from PIL import Image
 import re
+import seaborn as sns
 
 def celsius_to_fahrenheit(celsius):
     fahrenheit = celsius * (9/5) + 32
@@ -30,7 +30,10 @@ def create_db():
         temp_feels_like REAL,
         wind_speed REAL,
         humidade INTEGER,
-        quant_nuvens INTEGER
+        quant_nuvens INTEGER,
+        pressao INTEGER,
+        descricao TEXT,
+        cidade TEXT
     )
     """)
     conn.commit()
@@ -40,8 +43,8 @@ def insert_data_to_db(data):
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens) VALUES (?, ?, ?, ?, ?)
-    """, (data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens']))
+    INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens'],data['pressao'], data['descricao'], data['cidade']))
     conn.commit()
     conn.close()
 
@@ -54,9 +57,9 @@ def insert_dataframe_into_db(data):
         for index, row in data.iterrows():
             # Insert each row into the weather_data table
             cursor.execute("""
-                INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens) 
-                VALUES (?, ?, ?, ?, ?)
-            """, (row['temp'], row['temp_feels_like'], row['wind_speed'], row['humidade'], row['quant_nuvens']))
+                INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (row['temp'], row['temp_feels_like'], row['wind_speed'], row['humidade'], row['quant_nuvens'], row['pressao'],row['descricao'], row['cidade']))
 
         conn.commit()
         conn.close()
@@ -118,7 +121,7 @@ def print_db():
     rows = cursor.fetchall()
 
     headers = ["ID", "Temperatura (ºC)", "Sensação Térmica (ºC)", "Velocidade do Vento (m/s)", "Humidade",
-               "Quantidade de Nuvens"]
+               "Quantidade de Nuvens","Pressão","Descrição","Cidade"]
     table = tabulate(rows, headers=headers, tablefmt="pretty")
     print(table)
 
@@ -141,6 +144,9 @@ def get_weather_data(api_key, cidade, unidade):
         weather_data['wind_speed'] = response['wind']['speed']
         weather_data['humidade'] = response['main']['humidity']
         weather_data['quant_nuvens'] = response['clouds']['all']
+        weather_data['pressao'] = response['main']['pressure']
+        weather_data['descricao'] = response['weather'][0]['main']
+        weather_data['cidade'] = cidade
 
 
 
@@ -188,22 +194,51 @@ def plot_data():
     # Separate the data into different lists
     temp = [row[1] for row in data]
     temp_feels_like = [row[2] for row in data]
-    wind_speed = [row[3] for row in data]
-    humidade = [row[4] for row in data]
-    quant_nuvens = [row[5] for row in data]
+    pressao = [row[3] for row in data]
+    wind_speed = [row[4] for row in data]
+    humidade = [row[5] for row in data]
+    quant_nuvens = [row[6] for row in data]
+
+    # Set the style of the plots
+    sns.set_style("whitegrid")
+
+    # Create a figure and a set of subplots
+    fig, axs = plt.subplots(6, 1, figsize=(5, 10))
 
     # Plot the data
-    plt.figure(figsize=(10, 6))
-    plt.plot(temp, label='Temperatura')
-    plt.plot(temp_feels_like, label='Sensação Térmica')
-    plt.plot(wind_speed, label='Velocidade do vento')
-    plt.plot(humidade, label='Humidade')
-    plt.plot(quant_nuvens, label='Quantidade média de nuvens')
-    plt.title('Weather Data over Time')
-    plt.xlabel('Tempo')
-    plt.ylabel('Valores')
-    plt.legend()
+    axs[0].plot(temp, color='blue')
+    axs[0].set_title('Temperatura')
+    axs[0].set_ylabel('Temperatura (ºC)')
+
+    axs[1].plot(temp_feels_like, color='orange')
+    axs[1].set_title('Sensação Térmica')
+    axs[1].set_ylabel('Temperatura (ºC)')
+
+    axs[2].plot(pressao, color='purple')
+    axs[2].set_title('Pressão')
+    axs[2].set_ylabel('Pressão')
+
+    axs[3].plot(wind_speed, color='green')
+    axs[3].set_title('Velocidade do vento')
+    axs[3].set_ylabel('Velocidade (m/s)')
+
+    axs[4].plot(humidade, color='red')
+    axs[4].set_title('Humidade')
+    axs[4].set_ylabel('Humidade (%)')
+
+    axs[5].plot(quant_nuvens, color='purple')
+    axs[5].set_title('Quantidade média de nuvens')
+    axs[5].set_ylabel('Quantidade de Nuvens (%)')
+
+    # Set the title for the entire figure
+    fig.suptitle('Weather Data over Time', fontsize=16)
+
+    # Adjust the layout
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+    # Show the plot
     plt.show()
+
 
 #data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 10, 7)
 #insert_dataframe_into_db(data_df)
@@ -273,20 +308,21 @@ def criar_interface():
 
 
 
+
         # Check if the name is in the correct format (only letters and spaces)
-        if not re.match("^[a-zA-Z ]+$", nome):
-            error_message_label.configure(text="")
-            error_message_label.configure(text="Nome inválido.\nPor favor insira apenas letras e espaços.")
-            return
+        #if not re.match("^[a-zA-Z ]+$", nome):
+        #    error_message_label.configure(text="")
+        #    error_message_label.configure(text="Nome inválido.\nPor favor insira apenas letras e espaços.")
+        #    return
 
         # Check if the email is in the correct format
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            error_message_label.configure(text="")
-            error_message_label.configure(text="Email inválido.\nPor favor insira um formato de email válido.")
-            return
+        #if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        #    error_message_label.configure(text="")
+        #    error_message_label.configure(text="Email inválido.\nPor favor insira um formato de email válido.")
+        #    return
 
         # If the name and email are in the correct format, clear the error message and continue with the rest of the function
-        error_message_label.configure(text="")
+        #error_message_label.configure(text="")
 
 
         root.iconify()
@@ -309,6 +345,7 @@ def criar_interface():
 
         refresh_button_data = Image.open("images/refresh_icon.png")
         return_button_data = Image.open("images/voltar.png")
+        graph_button_data = Image.open("images/graph_icon.png")
 
         cidade_label = ctk.CTkLabel(master=weather_interface,text=cidade,font=("Roboto Bold",18))
         cidade_label.pack(anchor="center")
@@ -323,26 +360,39 @@ def criar_interface():
 
         refresh_button = ctk.CTkImage(dark_image=refresh_button_data, light_image=refresh_button_data,size=(20,20))
         return_button = ctk.CTkImage(dark_image=return_button_data, light_image=return_button_data,size=(20,20))
+        graph_button = ctk.CTkImage(dark_image=graph_button_data, light_image=graph_button_data, size=(20, 20))
 
-        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=root.deiconify,bg_color="#79828c",fg_color="#1f89a1",width=30)
+        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=root.deiconify,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_retornar.place(x=10, y=10)
 
-        button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,bg_color="#79828c",fg_color="#1f89a1",width=30)
+        button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_refresh_page.place(x=550,y=10)
 
-        label_vento = ctk.CTkLabel(master=weather_interface,text="Vento",font=("Roboto Bold",14))
+        button_graph = ctk.CTkButton(master=weather_interface, text="", command=plot_data, image=graph_button, bg_color="#297CAA", fg_color="#1f89a1", width=30)
+        button_graph.place(x=50, y=10)
+
+        label_vento = ctk.CTkLabel(master=weather_interface,text="Vento",font=("Roboto Bold",16))
         label_vento.place(x=20,y=200)
 
-        label_humidade = ctk.CTkLabel(master=weather_interface,text="Humidade",font=("Roboto Bold",14))
+        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['wind_speed']} m/s",font=("Roboto",14)).place(x=20,y=220)
+
+        label_humidade = ctk.CTkLabel(master=weather_interface,text="Humidade",font=("Roboto Bold",16))
         label_humidade.place(x=100,y=200)
 
-        label_pressao = ctk.CTkLabel(master=weather_interface, text="Pressão", font=("Roboto Bold", 14))
+        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['humidade']}",font=("Roboto",14)).place(x=100,y=220)
+
+        label_pressao = ctk.CTkLabel(master=weather_interface, text="Pressão", font=("Roboto Bold", 16))
         label_pressao.place(x=210, y=200)
+
+        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['pressao']}",font=("Roboto",14)).place(x=210,y=220)
 
         label_sensacao_termica = ctk.CTkLabel(master=weather_interface, text="Sensação térmica", font=("Roboto", 14))
         label_sensacao_termica.place(x=220,y=138)
 
-        label_quant_nuvens = ctk.CTkLabel(master=weather_interface, text="Quantidade de Nuvens", font=("Roboto Bold", 14))
+        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['temp_feels_like']}",font=("Montserrat",22)).place(x=340,y=138)
+        ctk.CTkLabel(master=weather_interface, text="ºC",font=("Montserrat", 15)).place(x=365, y=138)
+
+        label_quant_nuvens = ctk.CTkLabel(master=weather_interface, text="Quantidade de Nuvens", font=("Roboto Bold", 16))
         label_quant_nuvens.place(x=320,y=200)
 
         #ctk.CTkLabel(master=weather_interface,text=f"Nome: {nome}\nEmail: {email}\nTemperatura:{temp_unit}\nVento:{wind_speed_unit}",bg_color="#297CAA").pack(padx=10,pady=10)
@@ -425,6 +475,7 @@ def criar_interface():
 
 
 criar_interface()
+
 
 
 
