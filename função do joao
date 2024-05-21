@@ -16,16 +16,17 @@ def criar_interface():
             time_label.configure(text=current_time)
 
 
-                def plot_data():
+        def plot_data():
             # Fetch data from the database
             data = get_data_from_db()
 
             # Separate the data into different lists
             temp = [row[1] for row in data]
             temp_feels_like = [row[2] for row in data]
-            wind_speed = [row[3] for row in data]
-            humidade = [row[4] for row in data]
-            quant_nuvens = [row[5] for row in data]
+            pressão = [row[3] for row in data]
+            wind_speed = [row[4] for row in data]
+            humidade = [row[5] for row in data]
+            quant_nuvens = [row[6] for row in data]
 
             # Set the style of the plots
             sns.set_style("whitegrid")
