@@ -140,7 +140,7 @@ def get_weather_data(api_key, cidade, unidade):
     else:
         weather_data['temp'] = int(response['main']['temp'])
 
-        weather_data['temp_feels_like'] = int(response['main']['feels_like'])
+        weather_data['temp_feels_like'] = round(response['main']['feels_like'])
         weather_data['wind_speed'] = response['wind']['speed']
         weather_data['humidade'] = response['main']['humidity']
         weather_data['quant_nuvens'] = response['clouds']['all']
@@ -284,7 +284,7 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
     server.quit()
 
 
-
+print()
 
 
 
@@ -302,8 +302,9 @@ def criar_interface():
         temp_unit = temp_unit_var.get()
         wind_speed_unit = wind_speed_unit_var.get()
 
+
         def show_time():
-            current_time = time.strftime('%H:%M')  # changed from '%H:%M:%S' to '%H:%M'
+            current_time = time.strftime('%H:%M')
             time_label.configure(text=current_time)
 
 
@@ -339,8 +340,94 @@ def criar_interface():
         clouds_image_data = Image.open("images/clouds.png")
         rain_image_data = Image.open("images/rain.png")
         storm_image_data = Image.open("images/storm.png")
+        snow_image_data = Image.open("images/snow.png")
+        fog_image_data = Image.open("images/mist.png")
+        smoke_image_data = Image.open("images/smoke.png")
+        dust_image_data = Image.open("images/dust.png")
+        ash_image_data = Image.open("images/ash.png")
+        tornado_image_data = Image.open("images/tornado.png")
 
         weather_data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
+
+        if temp_unit == "F":
+            weather_data['temp'] = round(celsius_to_fahrenheit(weather_data['temp']))
+            weather_data['temp_feels_like'] = round(celsius_to_fahrenheit(weather_data['temp_feels_like']))
+
+        if wind_speed_unit == "km/h":
+            weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']),1)
+
+
+        def update_weather_image():
+            if weather_data['descricao'] == "Thunderstorm":
+                image_data = storm_image_data
+            elif weather_data['descricao'] == "Clouds":
+                image_data = clouds_and_sun_image_data
+            elif weather_data['descricao'] == "Rain":
+                image_data = rain_image_data
+            elif weather_data['descricao'] == "Drizzle":
+                image_data = rain_image_data
+            elif weather_data['descricao'] == "Snow":
+                image_data = snow_image_data
+            elif weather_data['descricao'] == "Mist":
+                image_data = fog_image_data
+            elif weather_data['descricao'] == "Smoke":
+                image_data = smoke_image_data
+            elif weather_data['descricao'] == "Haze":
+                image_data = fog_image_data
+            elif weather_data['descricao'] == "Dust":
+                image_data = dust_image_data
+            elif weather_data['descricao'] == "Fog":
+                image_data = fog_image_data
+            elif weather_data['descricao'] == "Sand":
+                image_data = dust_image_data
+            elif weather_data['descricao'] == "Ash":
+                image_data = ash_image_data
+            elif weather_data['descricao'] == "Squall":
+                image_data = storm_image_data
+            elif weather_data['descricao'] == "Tornado":
+                image_data = tornado_image_data
+            elif weather_data['descricao'] == "Clear":
+                image_data = sun_image_data
+            else:
+                image_data = clouds_image_data  # Default image if condition is not recognized
+
+                # Update the weather image
+            weather_image.configure(image=ctk.CTkImage(dark_image=image_data, light_image=image_data, size=(65, 65)))
+
+        def refresh_weather():
+            cidade = entry_cidade.get()
+            weather_data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
+
+            if temp_unit == "F":
+                weather_data['temp'] = round(celsius_to_fahrenheit(weather_data['temp']))
+                weather_data['temp_feels_like'] = round(celsius_to_fahrenheit(weather_data['temp_feels_like']))
+
+            if wind_speed_unit == "km/h":
+                weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']), 2)
+
+            # Update temperature
+            temp_label.configure(text=f"{weather_data['temp']}")
+
+            # Update feels-like temperature
+            label_sensacao_termica_dados.configure(text=f"{weather_data['temp_feels_like']}")
+
+            # Update wind speed
+            label_vento_dados.configure(text=f"{weather_data['wind_speed']} m/s")
+
+            # Update cloud quantity
+            label_quant_nuvens_dados.configure(text=f"{weather_data['quant_nuvens']}")
+
+            # Update pressure
+            label_pressao_dados.configure(text=f"{weather_data['pressao']}")
+
+            # Update humidity
+            label_humidade_dados.configure(text=f"{weather_data['humidade']}")
+
+            # Update weather icon
+            update_weather_image()
+
+            # Update time
+            show_time()
 
 
         refresh_button_data = Image.open("images/refresh_icon.png")
@@ -348,15 +435,22 @@ def criar_interface():
         graph_button_data = Image.open("images/graph_icon.png")
 
         cidade_label = ctk.CTkLabel(master=weather_interface,text=cidade,font=("Roboto Bold",18))
-        cidade_label.pack(anchor="center")
+        cidade_label.pack(anchor="center",pady=10)
 
         time_label = ctk.CTkLabel(master=weather_interface)
         time_label.place(x=10,y=70)
 
         ctk.CTkLabel(master=weather_interface,text="Metereologia Atual",font=("Roboto Bold",18)).place(x=10,y=50)
 
-        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['temp']}",font=("Montserrat",63)).place(x=90,y=100)
-        ctk.CTkLabel(master=weather_interface,text="ºC",font=("Roboto",25)).place(x=160,y=110)
+        temp_label = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['temp']}",font=("Montserrat",63))
+        temp_label.place(x=90,y=100)
+
+        if temp_unit == "ºC":
+            unit_temp = ctk.CTkLabel(master=weather_interface,text="ºC",font=("Roboto",25))
+            unit_temp.place(x=160,y=110)
+        else:
+            unit_temp = ctk.CTkLabel(master=weather_interface, text="F", font=("Roboto", 25))
+            unit_temp.place(x=160, y=110)
 
         refresh_button = ctk.CTkImage(dark_image=refresh_button_data, light_image=refresh_button_data,size=(20,20))
         return_button = ctk.CTkImage(dark_image=return_button_data, light_image=return_button_data,size=(20,20))
@@ -365,7 +459,7 @@ def criar_interface():
         button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=root.deiconify,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_retornar.place(x=10, y=10)
 
-        button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,bg_color="#297CAA",fg_color="#1f89a1",width=30)
+        button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,command=refresh_weather,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_refresh_page.place(x=550,y=10)
 
         button_graph = ctk.CTkButton(master=weather_interface, text="", command=plot_data, image=graph_button, bg_color="#297CAA", fg_color="#1f89a1", width=30)
@@ -374,31 +468,49 @@ def criar_interface():
         label_vento = ctk.CTkLabel(master=weather_interface,text="Vento",font=("Roboto Bold",16))
         label_vento.place(x=20,y=200)
 
-        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['wind_speed']} m/s",font=("Roboto",14)).place(x=20,y=220)
+        if wind_speed_unit == "m/s":
+            label_vento_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['wind_speed']} m/s",font=("Roboto",14))
+            label_vento_dados.place(x=20,y=220)
+        else:
+            label_vento_dados = ctk.CTkLabel(master=weather_interface, text=f"{weather_data['wind_speed']} km/h", font=("Roboto", 14))
+            label_vento_dados.place(x=20, y=220)
 
         label_humidade = ctk.CTkLabel(master=weather_interface,text="Humidade",font=("Roboto Bold",16))
         label_humidade.place(x=100,y=200)
 
-        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['humidade']}",font=("Roboto",14)).place(x=100,y=220)
+        label_humidade_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['humidade']}%",font=("Roboto",14))
+        label_humidade_dados.place(x=100,y=220)
 
         label_pressao = ctk.CTkLabel(master=weather_interface, text="Pressão", font=("Roboto Bold", 16))
         label_pressao.place(x=210, y=200)
 
-        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['pressao']}",font=("Roboto",14)).place(x=210,y=220)
+        label_pressao_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['pressao']}",font=("Roboto",14))
+        label_pressao_dados.place(x=210,y=220)
 
         label_sensacao_termica = ctk.CTkLabel(master=weather_interface, text="Sensação térmica", font=("Roboto", 14))
         label_sensacao_termica.place(x=220,y=138)
 
-        ctk.CTkLabel(master=weather_interface,text=f"{weather_data['temp_feels_like']}",font=("Montserrat",22)).place(x=340,y=138)
-        ctk.CTkLabel(master=weather_interface, text="ºC",font=("Montserrat", 15)).place(x=365, y=138)
+        label_sensacao_termica_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['temp_feels_like']}",font=("Montserrat",22))
+        label_sensacao_termica_dados.place(x=340,y=138)
+
+        if temp_unit == "ºC":
+            ctk.CTkLabel(master=weather_interface, text="ºC",font=("Montserrat", 15)).place(x=365, y=138)
+        else:
+            ctk.CTkLabel(master=weather_interface, text="F", font=("Montserrat", 15)).place(x=365, y=138)
+
 
         label_quant_nuvens = ctk.CTkLabel(master=weather_interface, text="Quantidade de Nuvens", font=("Roboto Bold", 16))
         label_quant_nuvens.place(x=320,y=200)
 
+        label_quant_nuvens_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['quant_nuvens']}",font=("Roboto",14))
+        label_quant_nuvens_dados.place(x=320,y=220)
+
         #ctk.CTkLabel(master=weather_interface,text=f"Nome: {nome}\nEmail: {email}\nTemperatura:{temp_unit}\nVento:{wind_speed_unit}",bg_color="#297CAA").pack(padx=10,pady=10)
 
-        sun_image = ctk.CTkLabel(master=weather_interface, text="",image=ctk.CTkImage(dark_image=clouds_and_sun_image_data,light_image=clouds_and_sun_image_data,size=(65,65)))
-        sun_image.place(x=15,y=100)
+        weather_image = ctk.CTkLabel(master=weather_interface, text="",image=ctk.CTkImage(dark_image=clouds_and_sun_image_data,light_image=clouds_and_sun_image_data,size=(65,65)))
+        weather_image.place(x=15,y=100)
+
+        update_weather_image()
 
         show_time()
 
@@ -475,6 +587,8 @@ def criar_interface():
 
 
 criar_interface()
+
+
 
 
 
