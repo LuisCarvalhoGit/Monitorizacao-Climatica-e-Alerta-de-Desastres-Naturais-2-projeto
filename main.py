@@ -204,12 +204,7 @@ def analyze_weather_data(data):
        return (data[-1] - data[0]) / (len(data) - 1)
 
 
-    print(f"Análise dos dados do clima:")
-    print(f"Temperatura média: {weather_data_df['temp'].mean()} ºC")
-    print(f"Sensação térmica média: {weather_data_df['temp_feels_like'].mean()} ºC")
-    print(f"Velocidade média do vento: {weather_data_df['wind_speed'].mean()} m/s")
-    print(f"Humidade média: {weather_data_df['humidade'].mean()}")
-    print(f"Quantidade média de nuvens: {weather_data_df['quant_nuvens'].mean()}")
+
 
 def checkDisasters(weather_data_df):
     """
@@ -247,32 +242,32 @@ def plot_data():
     sns.set_style("whitegrid")
 
     # Create a figure and a set of subplots
-    fig, axs = plt.subplots(6, 1, figsize=(5, 10))
+    fig, axs = plt.subplots(3, 2, figsize=(100, 50))
 
     # Plot the data
-    axs[0].plot(temp, color='blue')
-    axs[0].set_title('Temperatura')
-    axs[0].set_ylabel('Temperatura (ºC)')
+    axs[0, 0].plot(temp, color='blue')
+    axs[0, 0].set_title('Temperatura (ºC)')
 
-    axs[1].plot(temp_feels_like, color='orange')
-    axs[1].set_title('Sensação Térmica')
-    axs[1].set_ylabel('Temperatura (ºC)')
 
-    axs[2].plot(pressao, color='purple')
-    axs[2].set_title('Pressão')
-    axs[2].set_ylabel('Pressão')
+    axs[0, 1].plot(temp_feels_like, color='orange')
+    axs[0, 1].set_title('Sensação Térmica(ªC)')
 
-    axs[3].plot(wind_speed, color='green')
-    axs[3].set_title('Velocidade do vento')
-    axs[3].set_ylabel('Velocidade (m/s)')
 
-    axs[4].plot(humidade, color='red')
-    axs[4].set_title('Humidade')
-    axs[4].set_ylabel('Humidade (%)')
+    axs[1, 0].plot(pressao, color='purple')
+    axs[1, 0].set_title('Pressão (hPa)')
 
-    axs[5].plot(quant_nuvens, color='purple')
-    axs[5].set_title('Quantidade média de nuvens')
-    axs[5].set_ylabel('Quantidade de Nuvens (%)')
+
+    axs[1, 1].plot(wind_speed, color='green')
+    axs[1, 1].set_title('Velocidade do vento (m/s)')
+
+
+    axs[2, 0].plot(humidade, color='red')
+    axs[2, 0].set_title('Humidade (%)')
+
+
+    axs[2, 1].plot(quant_nuvens, color='purple')
+    axs[2, 1].set_title('Quantidade média de nuvens (%)')
+
 
     # Set the title for the entire figure
     fig.suptitle('Weather Data over Time', fontsize=16)
@@ -357,6 +352,7 @@ def criar_interface():
         def show_time():
             current_time = time.strftime('%H:%M')
             time_label.configure(text=current_time)
+
 
 
 
