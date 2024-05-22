@@ -10,17 +10,19 @@ from PIL import Image
 import re
 import seaborn as sns
 
+#Conversion functions
 def celsius_to_fahrenheit(celsius):
-    fahrenheit = celsius * (9/5) + 32
-    return fahrenheit
+    return celsius * (9/5) + 32
 
 def MetersPerSecond_to_KilometersPerHour(MetersPerSecond):
-    KilometersPerHour = MetersPerSecond * 3.6
-    return KilometersPerHour
+    return MetersPerSecond * 3.6
 
 
 
 def create_db():
+    """
+        Create the weather_data database table if it does not exist.
+    """
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("""
@@ -40,6 +42,9 @@ def create_db():
     conn.close()
 
 def insert_data_to_db(data):
+    """
+        Insert a new record into the weather_data table.
+    """
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("""
@@ -49,6 +54,9 @@ def insert_data_to_db(data):
     conn.close()
 
 def insert_dataframe_into_db(data):
+    """
+        Insert multiple records from a DataFrame into the weather_data table.
+    """
     try:
         conn = sqlite3.connect('weather_data.db')
         cursor = conn.cursor()
@@ -68,6 +76,9 @@ def insert_dataframe_into_db(data):
     except sqlite3.Error as e:
         print(f"Error inserting DataFrame: {e}")
 def get_data_from_db():
+    """
+        Retrieve all records from the weather_data table.
+    """
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("""
@@ -78,6 +89,9 @@ def get_data_from_db():
     return data
 
 def get_dataframe_from_db():
+    """
+        Retrieve all records from the weather_data table as a DataFrame.
+    """
     try:
         conn = sqlite3.connect('weather_data.db')
         query = "SELECT * FROM weather_data"
@@ -88,6 +102,9 @@ def get_dataframe_from_db():
         print(f"Error reading data from database: {e}")
 
 def delete_row(row_id):
+    """
+        Delete a specific record from the weather_data table by row ID.
+    """
     try:
         conn = sqlite3.connect('weather_data.db')
         cursor = conn.cursor()
@@ -100,6 +117,9 @@ def delete_row(row_id):
         print(f"Error deleting row: {e}")
 
 def delete_all_rows():
+    """
+        Delete all records from the weather_data table.
+    """
     try:
         conn = sqlite3.connect('weather_data.db')
         cursor = conn.cursor()
@@ -115,6 +135,9 @@ def delete_all_rows():
         print(f"Error deleting rows: {e}")
 
 def print_db():
+    """
+        Print all records from the weather_data table in a tabulated format.
+    """
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM weather_data")
@@ -127,7 +150,11 @@ def print_db():
 
     conn.close()
 
+# Weather data functions
 def get_weather_data(api_key, cidade, unidade):
+    """
+        Fetch weather data from OpenWeatherMap API for a given city.
+    """
     base_url = "https://api.openweathermap.org/data/2.5/weather?"
     url= base_url + "appid=" + api_key + "&q=" + cidade + "&units=" + unidade
 
@@ -153,6 +180,9 @@ def get_weather_data(api_key, cidade, unidade):
 
     return weather_data
 def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
+    """
+        Fetch weather data multiple times at regular intervals and return as a DataFrame.
+    """
     weather_data_list = []
     for _ in range(num_requests):
         weather_data = get_weather_data(api_key, cidade, unidade)
@@ -163,10 +193,16 @@ def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
 
     return weather_data_df
 
-def analyze_weather_data(weather_data_df):
-    if weather_data_df.empty:
-        print("Nenhum dado de clima disponível para análise.")
-        return
+# Analysis and alert functions
+def analyze_weather_data(data):
+   """
+        Analyze weather data to detect trends.
+   """
+   if len(data) < 2:
+       return 'none'
+   else:
+       return (data[-1] - data[0]) / (len(data) - 1)
+
 
     print(f"Análise dos dados do clima:")
     print(f"Temperatura média: {weather_data_df['temp'].mean()} ºC")
@@ -176,6 +212,9 @@ def analyze_weather_data(weather_data_df):
     print(f"Quantidade média de nuvens: {weather_data_df['quant_nuvens'].mean()}")
 
 def checkDisasters(weather_data_df):
+    """
+        Check weather data for potential disaster conditions.
+    """
     if weather_data_df.empty:
         print("Nenhum dado de clima disponível para análise.")
         return
@@ -187,7 +226,12 @@ def checkDisasters(weather_data_df):
     if weather_data_df['wind_speed'].mean() > limite_vento_furacao:
         print("Alerta! Condições potenciais de furacão detectadas.")
 
+
+# Plotting function
 def plot_data():
+    """
+        Plot weather data from the database.
+    """
     # Fetch data from the database
     data = get_data_from_db()
 
@@ -266,7 +310,12 @@ def plot_data():
 
 
 # rrol wold diuu dwdx = App Password
+
+# Email notification function
 def send_notification_to_email(subject, message, to_email, from_email="alertsweather0@gmail.com", passkey="rrol wold diuu dwdx"):
+    """
+        Send an email notification.
+    """
     # Set up the SMTP server
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -284,13 +333,15 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
     server.quit()
 
 
-print()
 
 
 
 
+# Interface
 def criar_interface():
-
+    """
+        Create the user interface for collecting weather data and displaying it.
+    """
 
 
     def Recolherdados(event=None):
