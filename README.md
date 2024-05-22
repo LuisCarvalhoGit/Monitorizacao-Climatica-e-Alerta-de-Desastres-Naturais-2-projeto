@@ -32,6 +32,6 @@ A Python application to fetch, store, analyze, and visualize weather data. It ca
 ## Authors
 
 - Luis Carvalho - al81967
-- João Nogueira - al
-- Diogo Queiroz - al
-- Filipe Nazário - al
+- João Nogueira - al81605
+- Diogo Queiroz - al82626
+- Filipe Silva - al82239
