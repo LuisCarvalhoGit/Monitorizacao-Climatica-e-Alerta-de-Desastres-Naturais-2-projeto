@@ -26,7 +26,7 @@ A Python application to fetch, store, analyze, and visualize weather data. It ca
 ## Setup
 1. **Install the required packages:**
     ```bash
-    pip install requests customtkinter pandas matplotlib seaborn smtplib sqlite3 tabulate pillow configparser
+    pip install requests customtkinter pandas matplotlib seaborn smtplib sqlite3 tabulate pillow 
     ```
 
 ## Authors
