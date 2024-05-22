@@ -18,7 +18,7 @@ def MetersPerSecond_to_KilometersPerHour(MetersPerSecond):
     return MetersPerSecond * 3.6
 
 
-
+#Database functions
 def create_db():
     """
         Create the weather_data database table if it does not exist.
@@ -450,7 +450,7 @@ def criar_interface():
                 weather_data['temp_feels_like'] = round(celsius_to_fahrenheit(weather_data['temp_feels_like']))
 
             if wind_speed_unit == "km/h":
-                weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']), 2)
+                weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']), 1)
 
             # Update temperature
             temp_label.configure(text=f"{weather_data['temp']}")
@@ -459,16 +459,19 @@ def criar_interface():
             label_sensacao_termica_dados.configure(text=f"{weather_data['temp_feels_like']}")
 
             # Update wind speed
-            label_vento_dados.configure(text=f"{weather_data['wind_speed']} m/s")
+            if wind_speed_unit == "m/s":
+                label_vento_dados.configure(text=f"{weather_data['wind_speed']} m/s")
+            else:
+                label_vento_dados.configure(text=f"{weather_data['wind_speed']} km/h")
 
             # Update cloud quantity
             label_quant_nuvens_dados.configure(text=f"{weather_data['quant_nuvens']}")
 
             # Update pressure
-            label_pressao_dados.configure(text=f"{weather_data['pressao']}")
+            label_pressao_dados.configure(text=f"{weather_data['pressao']} hPa")
 
             # Update humidity
-            label_humidade_dados.configure(text=f"{weather_data['humidade']}")
+            label_humidade_dados.configure(text=f"{weather_data['humidade']} %")
 
             # Update weather icon
             update_weather_image()
@@ -525,13 +528,13 @@ def criar_interface():
         label_humidade = ctk.CTkLabel(master=weather_interface,text="Humidade",font=("Roboto Bold",16))
         label_humidade.place(x=100,y=200)
 
-        label_humidade_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['humidade']}%",font=("Roboto",14))
+        label_humidade_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['humidade']} %",font=("Roboto",14))
         label_humidade_dados.place(x=100,y=220)
 
         label_pressao = ctk.CTkLabel(master=weather_interface, text="Pressão", font=("Roboto Bold", 16))
         label_pressao.place(x=210, y=200)
 
-        label_pressao_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['pressao']}",font=("Roboto",14))
+        label_pressao_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['pressao']} hPa",font=("Roboto",14))
         label_pressao_dados.place(x=210,y=220)
 
         label_sensacao_termica = ctk.CTkLabel(master=weather_interface, text="Sensação térmica", font=("Roboto", 14))
