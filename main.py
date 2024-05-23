@@ -194,35 +194,172 @@ def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
     return weather_data_df
 
 # Analysis and alert functions
-def analyze_weather_data(data):
-   """
-        Analyze weather data to detect trends.
-   """
-   if len(data) < 2:
-       return 'none'
-   else:
-       return (data[-1] - data[0]) / (len(data) - 1)
+def calculate_rate_of_change(weather_data_df, column_name):
+    """
+    Calculate the rate of change for a given column in the DataFrame.
 
+    Parameters:
+    weather_data_df (pd.DataFrame): A DataFrame containing weather data.
+    column_name (str): The name of the column for which to calculate the rate of change.
 
+    Returns:
+    pd.Series: A series containing the rate of change for the specified column.
+    """
+    return weather_data_df[column_name].diff().fillna(0)
 
+def analyze_weather_trends(weather_data_df):
+    """
+    Analyze weather data over time to identify significant trends and rates of change.
+
+    Parameters:
+    weather_data_df (pd.DataFrame): A DataFrame containing weather data with the following columns:
+        - 'timestamp' (datetime): Timestamp of the data point.
+        - 'wind_speed' (float): Wind speed in m/s.
+        - 'temp' (float): Temperature in degrees Celsius.
+        - 'humidity' (float): Humidity percentage.
+        - 'pressure' (float): Atmospheric pressure in hPa.
+
+    Returns:
+    dict: A dictionary containing the trends and rates of change for key weather variables.
+    """
+    # Ensure the DataFrame is sorted by timestamp
+    weather_data_df = weather_data_df.sort_values(by='timestamp')
+
+    # Calculate rates of change for key variables
+    wind_speed_change = calculate_rate_of_change(weather_data_df, 'wind_speed')
+    temp_change = calculate_rate_of_change(weather_data_df, 'temp')
+    humidity_change = calculate_rate_of_change(weather_data_df, 'humidity')
+    pressure_change = calculate_rate_of_change(weather_data_df, 'pressure')
+
+    # Identify significant trends or sudden changes (this can be refined further based on domain knowledge)
+    significant_wind_change = wind_speed_change.abs().max()
+    significant_temp_change = temp_change.abs().max()
+    significant_humidity_change = humidity_change.abs().max()
+    significant_pressure_change = pressure_change.abs().max()
+
+    return {
+        'max_wind_speed_change': significant_wind_change,
+        'max_temp_change': significant_temp_change,
+        'max_humidity_change': significant_humidity_change,
+        'max_pressure_change': significant_pressure_change
+    }
 
 def checkDisasters(weather_data_df):
     """
-        Check weather data for potential disaster conditions.
+    Check weather data for potential disaster conditions.
+
+    Parameters:
+    weather_data_df (pd.DataFrame): A DataFrame containing weather data with the following columns:
+        - 'timestamp' (datetime): Timestamp of the data point.
+        - 'wind_speed' (float): Wind speed in m/s.
+        - 'temp' (float): Temperature in degrees Celsius.
+        - 'humidity' (float): Humidity percentage.
+        - 'pressure' (float): Atmospheric pressure in hPa.
+
+    Returns:
+    dict: A dictionary containing the probabilities of various disasters and trends.
+        - 'storm_probability': Probability of a storm (%).
+        - 'tornado_probability': Probability of a tornado (%).
+        - 'hurricane_probability': Probability of a hurricane (%).
+        - 'trends': Trends and rates of change for key weather variables.
     """
     if weather_data_df.empty:
         print("Nenhum dado de clima disponível para análise.")
-        return
+        return {
+            'storm_probability': 0,
+            'tornado_probability': 0,
+            'hurricane_probability': 0,
+            'trends': {}
+        }
 
-    # Definir os limites para cada tipo de desastre
-    limite_vento_furacao = 33  # m/s
+    # Define thresholds
+    HURRICANE_WIND_THRESHOLD = 33  # m/s
 
-    # Verificar se algum dos limites foi excedido
-    if weather_data_df['wind_speed'].mean() > limite_vento_furacao:
+    # Initialize probability scores
+    storm_score = 0
+    tornado_score = 0
+    hurricane_score = 0
+
+    # Calculate storm probability
+    temp_mean = weather_data_df['temp'].mean()
+    humidity_mean = weather_data_df['humidity'].mean()
+    pressure_mean = weather_data_df['pressure'].mean()
+    wind_speed_mean = weather_data_df['wind_speed'].mean()
+
+    if temp_mean > 30 or temp_mean < 5:
+        storm_score += 3
+    elif 25 <= temp_mean <= 30 or 5 <= temp_mean <= 10:
+        storm_score += 2
+    else:
+        storm_score += 1
+
+    if humidity_mean > 80:
+        storm_score += 3
+    elif 50 <= humidity_mean <= 80:
+        storm_score += 2
+    else:
+        storm_score += 1
+
+    storm_probability = (storm_score / 6) * 100
+
+    # Calculate tornado probability if there is a chance of a storm
+    if storm_probability > 0:
+        if 20 <= temp_mean <= 30:
+            tornado_score += 3
+        elif 15 <= temp_mean < 20 or 30 < temp_mean <= 35:
+            tornado_score += 2
+        else:
+            tornado_score += 1
+
+        if pressure_mean < 1000:
+            tornado_score += 3
+        elif 1000 <= pressure_mean <= 1010:
+            tornado_score += 2
+        else:
+            tornado_score += 1
+
+        if humidity_mean > 70:
+            tornado_score += 3
+        elif 50 <= humidity_mean <= 70:
+            tornado_score += 2
+        else:
+            tornado_score += 1
+
+        tornado_probability = (tornado_score / 9) * 100
+    else:
+        tornado_probability = 0
+
+    # Calculate hurricane probability
+    if wind_speed_mean > HURRICANE_WIND_THRESHOLD:
         print("Alerta! Condições potenciais de furacão detectadas.")
 
+    if pressure_mean < 990:
+        hurricane_score += 3
+    elif 990 <= pressure_mean <= 1005:
+        hurricane_score += 2
+    else:
+        hurricane_score += 1
 
-# Plotting function
+    if humidity_mean > 85:
+        hurricane_score += 3
+    elif 70 <= humidity_mean <= 85:
+        hurricane_score += 2
+    else:
+        hurricane_score += 1
+
+    hurricane_probability = (hurricane_score / 6) * 100
+
+    # Analyze weather trends
+    trends = analyze_weather_trends(weather_data_df)
+
+    return {
+        'storm_probability': storm_probability,
+        'tornado_probability': tornado_probability,
+        'hurricane_probability': hurricane_probability,
+        'trends': trends
+    }
+
+
 def plot_data():
     """
         Plot weather data from the database.
@@ -636,10 +773,11 @@ def criar_interface():
 
 
 
-criar_interface()
+#criar_interface()
 
 
-
+data = get_dataframe_from_db()
+checkDisasters(data)
 
 
 
