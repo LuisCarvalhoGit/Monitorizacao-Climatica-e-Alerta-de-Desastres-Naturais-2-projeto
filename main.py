@@ -205,6 +205,9 @@ def calculate_rate_of_change(weather_data_df, column_name):
     Returns:
     pd.Series: A series containing the rate of change for the specified column.
     """
+    if column_name not in weather_data_df.columns:
+        raise ValueError(f"Column {column_name} does not exist in the DataFrame")
+
     return weather_data_df[column_name].diff().fillna(0)
 
 def analyze_weather_trends(weather_data_df):
@@ -216,20 +219,29 @@ def analyze_weather_trends(weather_data_df):
         - 'timestamp' (datetime): Timestamp of the data point.
         - 'wind_speed' (float): Wind speed in m/s.
         - 'temp' (float): Temperature in degrees Celsius.
-        - 'humidity' (float): Humidity percentage.
-        - 'pressure' (float): Atmospheric pressure in hPa.
+        - 'humidade' (float): Humidity percentage.
+        - 'pressao' (float): Atmospheric pressure in hPa.
 
     Returns:
     dict: A dictionary containing the trends and rates of change for key weather variables.
     """
+
+    if weather_data_df.empty:
+        return {
+            'max_wind_speed_change': 0,
+            'max_temp_change': 0,
+            'max_humidity_change': 0,
+            'max_pressure_change': 0
+        }
+
     # Ensure the DataFrame is sorted by timestamp
     weather_data_df = weather_data_df.sort_values(by='timestamp')
 
     # Calculate rates of change for key variables
     wind_speed_change = calculate_rate_of_change(weather_data_df, 'wind_speed')
     temp_change = calculate_rate_of_change(weather_data_df, 'temp')
-    humidity_change = calculate_rate_of_change(weather_data_df, 'humidity')
-    pressure_change = calculate_rate_of_change(weather_data_df, 'pressure')
+    humidity_change = calculate_rate_of_change(weather_data_df, 'humidade')
+    pressure_change = calculate_rate_of_change(weather_data_df, 'pressao')
 
     # Identify significant trends or sudden changes (this can be refined further based on domain knowledge)
     significant_wind_change = wind_speed_change.abs().max()
@@ -282,8 +294,8 @@ def checkDisasters(weather_data_df):
 
     # Calculate storm probability
     temp_mean = weather_data_df['temp'].mean()
-    humidity_mean = weather_data_df['humidity'].mean()
-    pressure_mean = weather_data_df['pressure'].mean()
+    humidity_mean = weather_data_df['humidade'].mean()
+    pressure_mean = weather_data_df['pressao'].mean()
     wind_speed_mean = weather_data_df['wind_speed'].mean()
 
     if temp_mean > 30 or temp_mean < 5:
@@ -469,7 +481,7 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
 
 
 
-# Interface
+#Interface
 def criar_interface():
     """
         Create the user interface for collecting weather data and displaying it.
@@ -495,19 +507,19 @@ def criar_interface():
 
 
         # Check if the name is in the correct format (only letters and spaces)
-        #if not re.match("^[a-zA-Z ]+$", nome):
-        #    error_message_label.configure(text="")
-        #    error_message_label.configure(text="Nome inválido.\nPor favor insira apenas letras e espaços.")
-        #    return
+        if not re.match("^[a-zA-Z ]+$", nome):
+            error_message_label.configure(text="")
+            error_message_label.configure(text="Nome inválido.\nPor favor insira apenas letras e espaços.")
+            return
 
         # Check if the email is in the correct format
-        #if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        #    error_message_label.configure(text="")
-        #    error_message_label.configure(text="Email inválido.\nPor favor insira um formato de email válido.")
-        #    return
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            error_message_label.configure(text="")
+            error_message_label.configure(text="Email inválido.\nPor favor insira um formato de email válido.")
+            return
 
         # If the name and email are in the correct format, clear the error message and continue with the rest of the function
-        #error_message_label.configure(text="")
+        error_message_label.configure(text="")
 
 
         root.iconify()
@@ -540,6 +552,28 @@ def criar_interface():
         if wind_speed_unit == "km/h":
             weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']),1)
 
+            # Create a DataFrame from weather data for disaster analysis
+            weather_data_df = pd.DataFrame([{
+                'timestamp': pd.Timestamp.now(),
+                'wind_speed': weather_data['wind_speed'],
+                'temp': weather_data['temp'],
+                'humidade': weather_data['humidade'],
+                'pressao': weather_data['pressao']
+            }])
+
+            # Check for disasters
+            disaster_info = checkDisasters(weather_data_df)
+
+            # Send email notifications if necessary
+            if disaster_info['storm_probability'] > 50:
+                send_notification_to_email("Storm Alert",
+                                           f"A storm is likely in {cidade}. Please take precautions.", email)
+            if disaster_info['tornado_probability'] > 30:
+                send_notification_to_email("Tornado Alert",
+                                           f"A tornado is likely in {cidade}. Please take precautions.", email)
+            if disaster_info['hurricane_probability'] > 20:
+                send_notification_to_email("Hurricane Alert",
+                                           f"A hurricane is likely in {cidade}. Please take precautions.", email)
 
         def update_weather_image():
             if weather_data['descricao'] == "Thunderstorm":
@@ -681,7 +715,7 @@ def criar_interface():
         label_sensacao_termica_dados.place(x=340,y=138)
 
         if temp_unit == "ºC":
-            ctk.CTkLabel(master=weather_interface, text="ºC",font=("Montserrat", 15)).place(x=365, y=138)
+            ctk.CTkLabel(master=weather_interface, text="ºC",font=("Montserrat", 15)).place(x=368, y=138)
         else:
             ctk.CTkLabel(master=weather_interface, text="F", font=("Montserrat", 15)).place(x=365, y=138)
 
@@ -773,11 +807,10 @@ def criar_interface():
 
 
 
-#criar_interface()
+criar_interface()
 
 
-data = get_dataframe_from_db()
-checkDisasters(data)
+
 
 
 
