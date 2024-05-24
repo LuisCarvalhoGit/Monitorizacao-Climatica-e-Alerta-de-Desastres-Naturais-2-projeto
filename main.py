@@ -478,9 +478,6 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
 
 
 
-
-
-
 #Interface
 def criar_interface():
     """
@@ -501,9 +498,6 @@ def criar_interface():
         def show_time():
             current_time = time.strftime('%H:%M')
             time_label.configure(text=current_time)
-
-
-
 
 
         # Check if the name is in the correct format (only letters and spaces)
@@ -576,40 +570,29 @@ def criar_interface():
                                            f"A hurricane is likely in {cidade}. Please take precautions.", email)
 
         def update_weather_image():
-            if weather_data['descricao'] == "Thunderstorm":
-                image_data = storm_image_data
-            elif weather_data['descricao'] == "Clouds":
-                image_data = clouds_and_sun_image_data
-            elif weather_data['descricao'] == "Rain":
-                image_data = rain_image_data
-            elif weather_data['descricao'] == "Drizzle":
-                image_data = rain_image_data
-            elif weather_data['descricao'] == "Snow":
-                image_data = snow_image_data
-            elif weather_data['descricao'] == "Mist":
-                image_data = fog_image_data
-            elif weather_data['descricao'] == "Smoke":
-                image_data = smoke_image_data
-            elif weather_data['descricao'] == "Haze":
-                image_data = fog_image_data
-            elif weather_data['descricao'] == "Dust":
-                image_data = dust_image_data
-            elif weather_data['descricao'] == "Fog":
-                image_data = fog_image_data
-            elif weather_data['descricao'] == "Sand":
-                image_data = dust_image_data
-            elif weather_data['descricao'] == "Ash":
-                image_data = ash_image_data
-            elif weather_data['descricao'] == "Squall":
-                image_data = storm_image_data
-            elif weather_data['descricao'] == "Tornado":
-                image_data = tornado_image_data
-            elif weather_data['descricao'] == "Clear":
-                image_data = sun_image_data
-            else:
-                image_data = clouds_image_data  # Default image if condition is not recognized
+            # Mapping weather descriptions to image data
+            weather_images = {
+                "Thunderstorm": storm_image_data,
+                "Clouds": clouds_and_sun_image_data,
+                "Rain": rain_image_data,
+                "Drizzle": rain_image_data,
+                "Snow": snow_image_data,
+                "Mist": fog_image_data,
+                "Smoke": smoke_image_data,
+                "Haze": fog_image_data,
+                "Dust": dust_image_data,
+                "Fog": fog_image_data,
+                "Sand": dust_image_data,
+                "Ash": ash_image_data,
+                "Squall": storm_image_data,
+                "Tornado": tornado_image_data,
+                "Clear": sun_image_data,
+            }
 
-                # Update the weather image
+            # Get the image data based on the weather description, default to clouds_image_data if not found
+            image_data = weather_images.get(weather_data['descricao'], clouds_image_data)
+
+            # Update the weather image
             weather_image.configure(image=ctk.CTkImage(dark_image=image_data, light_image=image_data, size=(65, 65)))
 
         def refresh_weather():
