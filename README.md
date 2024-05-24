@@ -33,5 +33,5 @@ A Python application to fetch, store, analyze, and visualize weather data. It ca
 
 - Luis Carvalho - al81967
 - João Nogueira - al81605
-- Diogo Queiroz - al82626
+- Diogo Queirós - al82626
 - Filipe Silva - al82239
