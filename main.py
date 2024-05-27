@@ -16,12 +16,6 @@ import seaborn as sns
 def celsius_to_fahrenheit(celsius):
     """
         Convert temperature from Celsius to Fahrenheit.
-
-        Args:
-            celsius (float): Temperature in Celsius.
-
-        Returns:
-            float: Temperature converted to Fahrenheit.
     """
     return celsius * (9/5) + 32
 
@@ -29,11 +23,6 @@ def MetersPerSecond_to_KilometersPerHour(MetersPerSecond):
     """
         Convert speed from Meters per Second to Kilometers per Hour.
 
-        Args:
-            MetersPerSecond (float): Speed in Meters per Second.
-
-        Returns:
-            float: Speed converted to Kilometers per Hour.
     """
     return MetersPerSecond * 3.6
 
@@ -553,28 +542,28 @@ def criar_interface():
         if wind_speed_unit == "km/h":
             weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']),1)
 
-            # Create a DataFrame from weather data for disaster analysis
-            weather_data_df = pd.DataFrame([{
-                'timestamp': pd.Timestamp.now(),
-                'wind_speed': weather_data['wind_speed'],
-                'temp': weather_data['temp'],
-                'humidade': weather_data['humidade'],
-                'pressao': weather_data['pressao']
-            }])
+        # Create a DataFrame from weather data for disaster analysis
+        weather_data_df = pd.DataFrame([{
+            'timestamp': pd.Timestamp.now(),
+            'wind_speed': weather_data['wind_speed'],
+            'temp': weather_data['temp'],
+            'humidade': weather_data['humidade'],
+            'pressao': weather_data['pressao']
+        }])
 
-            # Check for disasters
-            disaster_info = checkDisasters(weather_data_df)
+        # Check for disasters
+        disaster_info = checkDisasters(weather_data_df)
 
-            # Send email notifications if necessary
-            if disaster_info['storm_probability'] > 50:
-                send_notification_to_email("Storm Alert",
-                                           f"A storm is likely in {cidade}. Please take precautions.", email)
-            if disaster_info['tornado_probability'] > 30:
-                send_notification_to_email("Tornado Alert",
-                                           f"A tornado is likely in {cidade}. Please take precautions.", email)
-            if disaster_info['hurricane_probability'] > 20:
-                send_notification_to_email("Hurricane Alert",
-                                           f"A hurricane is likely in {cidade}. Please take precautions.", email)
+        # Send email notifications if necessary
+        if disaster_info['storm_probability'] > 50:
+            send_notification_to_email("Storm Alert",
+                                        f"A storm is likely in {cidade}. Please take precautions.", email)
+        if disaster_info['tornado_probability'] > 30:
+            send_notification_to_email("Tornado Alert",
+                                        f"A tornado is likely in {cidade}. Please take precautions.", email)
+        if disaster_info['hurricane_probability'] > 20:
+            send_notification_to_email("Hurricane Alert",
+                                        f"A hurricane is likely in {cidade}. Please take precautions.", email)
 
         def update_weather_image():
             # Mapping weather descriptions to image data
@@ -810,13 +799,4 @@ def criar_interface():
 if __name__ == "__main__":
     create_db()
     criar_interface()
-
-
-
-
-
-
-
-
-
 
