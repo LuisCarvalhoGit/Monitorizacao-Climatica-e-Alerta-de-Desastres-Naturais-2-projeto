@@ -292,74 +292,55 @@ def checkDisasters(weather_data_df):
     tornado_score = 0
     hurricane_score = 0
 
-    # Calculate storm probability
+    # Calculate mean values
     temp_mean = weather_data_df['temp'].mean()
     humidity_mean = weather_data_df['humidade'].mean()
     pressure_mean = weather_data_df['pressao'].mean()
     wind_speed_mean = weather_data_df['wind_speed'].mean()
 
+    # Calculate storm probability
     if temp_mean > 30 or temp_mean < 5:
-        storm_score += 3
-    elif 25 <= temp_mean <= 30 or 5 <= temp_mean <= 10:
         storm_score += 2
-    else:
-        storm_score += 1
-
     if humidity_mean > 80:
-        storm_score += 3
-    elif 50 <= humidity_mean <= 80:
         storm_score += 2
-    else:
-        storm_score += 1
+    if pressure_mean < 1000:
+        storm_score += 2
+    if wind_speed_mean > 15:
+        storm_score += 2
 
-    storm_probability = (storm_score / 6) * 100
+    storm_probability = min((storm_score / 8) * 100, 100)
+
+
 
     # Calculate tornado probability if there is a chance of a storm
-    if storm_probability > 0:
+    if storm_probability > 20:
         if 20 <= temp_mean <= 30:
-            tornado_score += 3
-        elif 15 <= temp_mean < 20 or 30 < temp_mean <= 35:
             tornado_score += 2
-        else:
-            tornado_score += 1
-
         if pressure_mean < 1000:
-            tornado_score += 3
-        elif 1000 <= pressure_mean <= 1010:
             tornado_score += 2
-        else:
-            tornado_score += 1
-
         if humidity_mean > 70:
-            tornado_score += 3
-        elif 50 <= humidity_mean <= 70:
             tornado_score += 2
-        else:
-            tornado_score += 1
+        if wind_speed_mean > 20:
+            tornado_score += 2
 
-        tornado_probability = (tornado_score / 9) * 100
+        tornado_probability = min((tornado_score / 8) * 100, 100)
     else:
         tornado_probability = 0
 
     # Calculate hurricane probability
     if wind_speed_mean > HURRICANE_WIND_THRESHOLD:
-        print("Alerta! Condições potenciais de furacão detectadas.")
+        hurricane_score += 3
 
     if pressure_mean < 990:
         hurricane_score += 3
-    elif 990 <= pressure_mean <= 1005:
+    if pressure_mean < 990:
         hurricane_score += 2
-    else:
-        hurricane_score += 1
-
     if humidity_mean > 85:
-        hurricane_score += 3
-    elif 70 <= humidity_mean <= 85:
-        hurricane_score += 2
-    else:
         hurricane_score += 1
 
-    hurricane_probability = (hurricane_score / 6) * 100
+    hurricane_probability = min((hurricane_score / 6) * 100, 100)
+
+    hurricane_probability = min(hurricane_probability, 5)
 
     # Analyze weather trends
     trends = analyze_weather_trends(weather_data_df)
@@ -709,6 +690,12 @@ def criar_interface():
         label_quant_nuvens_dados = ctk.CTkLabel(master=weather_interface,text=f"{weather_data['quant_nuvens']}",font=("Roboto",14))
         label_quant_nuvens_dados.place(x=320,y=220)
 
+        label_nome = ctk.CTkLabel(master=weather_interface,text=f"Nome do usuário: {nome}", font=("Roboto Bold", 16))
+        label_nome.place(x=20,y=320)
+
+        label_email = ctk.CTkLabel(master=weather_interface,text=f"Email do usuário: {email}", font=("Roboto Bold", 16))
+        label_email.place(x=20,y=340)
+
         #ctk.CTkLabel(master=weather_interface,text=f"Nome: {nome}\nEmail: {email}\nTemperatura:{temp_unit}\nVento:{wind_speed_unit}",bg_color="#297CAA").pack(padx=10,pady=10)
 
         weather_image = ctk.CTkLabel(master=weather_interface, text="",image=ctk.CTkImage(dark_image=clouds_and_sun_image_data,light_image=clouds_and_sun_image_data,size=(65,65)))
@@ -790,7 +777,10 @@ def criar_interface():
 
 
 
-criar_interface()
+
+
+if __name__ == "__main__":
+    criar_interface()
 
 
 
