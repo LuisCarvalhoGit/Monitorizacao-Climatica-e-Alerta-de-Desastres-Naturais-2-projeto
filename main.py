@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import smtplib
 import time
+import threading
+from datetime import datetime
 import sqlite3
 from tabulate import tabulate
 from PIL import Image
@@ -12,9 +14,27 @@ import seaborn as sns
 
 #Conversion functions
 def celsius_to_fahrenheit(celsius):
+    """
+        Convert temperature from Celsius to Fahrenheit.
+
+        Args:
+            celsius (float): Temperature in Celsius.
+
+        Returns:
+            float: Temperature converted to Fahrenheit.
+    """
     return celsius * (9/5) + 32
 
 def MetersPerSecond_to_KilometersPerHour(MetersPerSecond):
+    """
+        Convert speed from Meters per Second to Kilometers per Hour.
+
+        Args:
+            MetersPerSecond (float): Speed in Meters per Second.
+
+        Returns:
+            float: Speed converted to Kilometers per Hour.
+    """
     return MetersPerSecond * 3.6
 
 
@@ -28,6 +48,7 @@ def create_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS weather_data (
         id INTEGER PRIMARY KEY,
+        timestamp TIMESTAMP,
         temp REAL,
         temp_feels_like REAL,
         wind_speed REAL,
@@ -48,8 +69,8 @@ def insert_data_to_db(data):
     conn = sqlite3.connect('weather_data.db')
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens'],data['pressao'], data['descricao'], data['cidade']))
+    INSERT INTO weather_data (timestamp, temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data['timestamp'],data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens'],data['pressao'], data['descricao'], data['cidade']))
     conn.commit()
     conn.close()
 
@@ -65,9 +86,9 @@ def insert_dataframe_into_db(data):
         for index, row in data.iterrows():
             # Insert each row into the weather_data table
             cursor.execute("""
-                INSERT INTO weather_data (temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (row['temp'], row['temp_feels_like'], row['wind_speed'], row['humidade'], row['quant_nuvens'], row['pressao'],row['descricao'], row['cidade']))
+                INSERT INTO weather_data (timestamp, temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (row['timestamp'],row['temp'], row['temp_feels_like'], row['wind_speed'], row['humidade'], row['quant_nuvens'], row['pressao'],row['descricao'], row['cidade']))
 
         conn.commit()
         conn.close()
@@ -143,7 +164,7 @@ def print_db():
     cursor.execute("SELECT * FROM weather_data")
     rows = cursor.fetchall()
 
-    headers = ["ID", "Temperatura (ºC)", "Sensação Térmica (ºC)", "Velocidade do Vento (m/s)", "Humidade",
+    headers = ["ID","Tempo(data/hora)", "Temperatura (ºC)", "Sensação Térmica (ºC)", "Velocidade do Vento (m/s)", "Humidade",
                "Quantidade de Nuvens","Pressão","Descrição","Cidade"]
     table = tabulate(rows, headers=headers, tablefmt="pretty")
     print(table)
@@ -166,7 +187,7 @@ def get_weather_data(api_key, cidade, unidade):
         print("Cidade nao encontrada")
     else:
         weather_data['temp'] = int(response['main']['temp'])
-
+        weather_data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         weather_data['temp_feels_like'] = round(response['main']['feels_like'])
         weather_data['wind_speed'] = response['wind']['speed']
         weather_data['humidade'] = response['main']['humidity']
@@ -179,6 +200,22 @@ def get_weather_data(api_key, cidade, unidade):
 
 
     return weather_data
+
+def store_weather_data(cidade):
+    conn = sqlite3.connect('weather_data.db')
+    c = conn.cursor()
+    while True:
+
+        data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
+        c.execute("INSERT INTO weather_data (timestamp, temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                  (data['timestamp'],data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens'],data['pressao'], data['descricao'], data['cidade']))
+        conn.commit()
+        time.sleep(60)  # Coleta de dados a cada 60 segundos
+
+def start_data_collection(cidade):
+    thread = threading.Thread(target=store_weather_data,args=(cidade,), daemon=True)
+    thread.start()
+
 def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
     """
         Fetch weather data multiple times at regular intervals and return as a DataFrame.
@@ -353,59 +390,46 @@ def checkDisasters(weather_data_df):
     }
 
 
-def plot_data():
-    """
-        Plot weather data from the database.
-    """
-    # Fetch data from the database
-    data = get_data_from_db()
+def plot_data(cidade):
+    conn = sqlite3.connect('weather_data.db')
+    c = conn.cursor()
+    # Consulta os dados do banco de dados filtrados pela cidade
+    c.execute("SELECT * FROM weather_data WHERE cidade = ?", (cidade,))
+    rows = c.fetchall()
+    conn.commit()
 
-    # Separate the data into different lists
-    temp = [row[1] for row in data]
-    temp_feels_like = [row[2] for row in data]
-    pressao = [row[3] for row in data]
-    wind_speed = [row[4] for row in data]
-    humidade = [row[5] for row in data]
-    quant_nuvens = [row[6] for row in data]
+    # Extrai os dados para plotagem
+    timestamps = [datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S') for row in rows]
+    temperatures = [row[2] for row in rows]
+    humidities = [row[3] for row in rows]
+    pressures = [row[4] for row in rows]
 
-    # Set the style of the plots
-    sns.set_style("whitegrid")
+    # Cria as figuras para plotagem
+    plt.figure(figsize=(7, 6),num="Gráficos")
 
-    # Create a figure and a set of subplots
-    fig, axs = plt.subplots(3, 2, figsize=(100, 50))
+    # Plotando a temperatura
+    plt.subplot(3, 1, 1)
+    sns.lineplot(x=timestamps, y=temperatures)
+    plt.title(f'Temperature Over Time in {cidade}')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Temperature (°C)')
 
-    # Plot the data
-    axs[0, 0].plot(temp, color='blue')
-    axs[0, 0].set_title('Temperatura (ºC)')
+    # Plotando a umidade
+    plt.subplot(3, 1, 2)
+    sns.lineplot(x=timestamps, y=humidities)
+    plt.title(f'Humidity Over Time in {cidade}')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Humidity (%)')
 
+    # Plotando a pressão
+    plt.subplot(3, 1, 3)
+    sns.lineplot(x=timestamps, y=pressures)
+    plt.title(f'Pressure Over Time in {cidade}')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Pressure (hPa)')
 
-    axs[0, 1].plot(temp_feels_like, color='orange')
-    axs[0, 1].set_title('Sensação Térmica(ªC)')
-
-
-    axs[1, 0].plot(pressao, color='purple')
-    axs[1, 0].set_title('Pressão (hPa)')
-
-
-    axs[1, 1].plot(wind_speed, color='green')
-    axs[1, 1].set_title('Velocidade do vento (m/s)')
-
-
-    axs[2, 0].plot(humidade, color='red')
-    axs[2, 0].set_title('Humidade (%)')
-
-
-    axs[2, 1].plot(quant_nuvens, color='purple')
-    axs[2, 1].set_title('Quantidade média de nuvens (%)')
-
-
-    # Set the title for the entire figure
-    fig.suptitle('Weather Data over Time', fontsize=16)
-
-    # Adjust the layout
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
-
-    # Show the plot
+    # Ajusta o layout e exibe o gráfico
+    plt.tight_layout()
     plt.show()
 
 
@@ -468,10 +492,6 @@ def criar_interface():
 
     def Recolherdados(event=None):
 
-        def voltar_para_inicial():
-            weather_interface.destroy()
-            root.deiconify()
-            
         nome = entry_nome.get()
         email = entry_email.get()
 
@@ -479,7 +499,9 @@ def criar_interface():
         temp_unit = temp_unit_var.get()
         wind_speed_unit = wind_speed_unit_var.get()
 
-
+        def return_mainscreen():
+            weather_interface.destroy()
+            root.deiconify()
         def show_time():
             current_time = time.strftime('%H:%M')
             time_label.configure(text=current_time)
@@ -645,13 +667,13 @@ def criar_interface():
         return_button = ctk.CTkImage(dark_image=return_button_data, light_image=return_button_data,size=(20,20))
         graph_button = ctk.CTkImage(dark_image=graph_button_data, light_image=graph_button_data, size=(20, 20))
 
-        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=voltar_para_inicial,bg_color="#297CAA",fg_color="#1f89a1",width=30)
+        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=return_mainscreen,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_retornar.place(x=10, y=10)
 
         button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,command=refresh_weather,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_refresh_page.place(x=550,y=10)
 
-        button_graph = ctk.CTkButton(master=weather_interface, text="", command=plot_data, image=graph_button, bg_color="#297CAA", fg_color="#1f89a1", width=30)
+        button_graph = ctk.CTkButton(master=weather_interface, text="", command=lambda: plot_data(cidade), image=graph_button, bg_color="#297CAA", fg_color="#1f89a1", width=30)
         button_graph.place(x=50, y=10)
 
         label_vento = ctk.CTkLabel(master=weather_interface,text="Vento",font=("Roboto Bold",16))
@@ -706,6 +728,8 @@ def criar_interface():
         weather_image.place(x=15,y=100)
 
         update_weather_image()
+
+        start_data_collection(cidade)
 
         show_time()
 
@@ -784,7 +808,9 @@ def criar_interface():
 
 
 if __name__ == "__main__":
+    create_db()
     criar_interface()
+
 
 
 
