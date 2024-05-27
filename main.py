@@ -468,6 +468,10 @@ def criar_interface():
 
     def Recolherdados(event=None):
 
+        def voltar_para_inicial():
+            weather_interface.destroy()
+            root.deiconify()
+            
         nome = entry_nome.get()
         email = entry_email.get()
 
@@ -641,7 +645,7 @@ def criar_interface():
         return_button = ctk.CTkImage(dark_image=return_button_data, light_image=return_button_data,size=(20,20))
         graph_button = ctk.CTkImage(dark_image=graph_button_data, light_image=graph_button_data, size=(20, 20))
 
-        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=root.deiconify,bg_color="#297CAA",fg_color="#1f89a1",width=30)
+        button_retornar = ctk.CTkButton(master=weather_interface,text="",image=return_button, command=voltar_para_inicial,bg_color="#297CAA",fg_color="#1f89a1",width=30)
         button_retornar.place(x=10, y=10)
 
         button_refresh_page = ctk.CTkButton(master=weather_interface,text="",image=refresh_button,command=refresh_weather,bg_color="#297CAA",fg_color="#1f89a1",width=30)
