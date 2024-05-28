@@ -199,7 +199,7 @@ def store_weather_data(cidade):
         c.execute("INSERT INTO weather_data (timestamp, temp, temp_feels_like, wind_speed, humidade, quant_nuvens, pressao, descricao, cidade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                   (data['timestamp'],data['temp'], data['temp_feels_like'], data['wind_speed'], data['humidade'], data['quant_nuvens'],data['pressao'], data['descricao'], data['cidade']))
         conn.commit()
-        time.sleep(60)  # Coleta de dados a cada 60 segundos
+        time.sleep(60)  # Colects data every 60 seconds
 
 def start_data_collection(cidade):
     thread = threading.Thread(target=store_weather_data,args=(cidade,), daemon=True)
@@ -269,7 +269,7 @@ def analyze_weather_trends(weather_data_df):
     humidity_change = calculate_rate_of_change(weather_data_df, 'humidade')
     pressure_change = calculate_rate_of_change(weather_data_df, 'pressao')
 
-    # Identify significant trends or sudden changes (this can be refined further based on domain knowledge)
+    # Identify significant trends or sudden changes
     significant_wind_change = wind_speed_change.abs().max()
     significant_temp_change = temp_change.abs().max()
     significant_humidity_change = humidity_change.abs().max()
@@ -382,42 +382,42 @@ def checkDisasters(weather_data_df):
 def plot_data(cidade):
     conn = sqlite3.connect('weather_data.db')
     c = conn.cursor()
-    # Consulta os dados do banco de dados filtrados pela cidade
+    # Query database data filtered by city
     c.execute("SELECT * FROM weather_data WHERE cidade = ?", (cidade,))
     rows = c.fetchall()
     conn.commit()
 
-    # Extrai os dados para plotagem
+    # Extracts data for plotting
     timestamps = [datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S') for row in rows]
     temperatures = [row[2] for row in rows]
     humidities = [row[3] for row in rows]
     pressures = [row[4] for row in rows]
 
-    # Cria as figuras para plotagem
+    # Create figures for plotting
     plt.figure(figsize=(7, 6),num="Gráficos")
 
-    # Plotando a temperatura
+    # Plotting the temperature
     plt.subplot(3, 1, 1)
     sns.lineplot(x=timestamps, y=temperatures)
     plt.title(f'Temperature Over Time in {cidade}')
     plt.xlabel('Timestamp')
     plt.ylabel('Temperature (°C)')
 
-    # Plotando a umidade
+    # Plotting the humidity
     plt.subplot(3, 1, 2)
     sns.lineplot(x=timestamps, y=humidities)
     plt.title(f'Humidity Over Time in {cidade}')
     plt.xlabel('Timestamp')
     plt.ylabel('Humidity (%)')
 
-    # Plotando a pressão
+    # Plotting the pressure
     plt.subplot(3, 1, 3)
     sns.lineplot(x=timestamps, y=pressures)
     plt.title(f'Pressure Over Time in {cidade}')
     plt.xlabel('Timestamp')
     plt.ylabel('Pressure (hPa)')
 
-    # Ajusta o layout e exibe o gráfico
+    # Adjust the layout and display the chart
     plt.tight_layout()
     plt.show()
 
