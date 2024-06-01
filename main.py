@@ -396,6 +396,8 @@ def plot_data(cidade):
     # Create figures for plotting
     plt.figure(figsize=(7, 6),num="Gráficos")
 
+
+
     # Plotting the temperature
     plt.subplot(3, 1, 1)
     sns.lineplot(x=timestamps, y=temperatures)
@@ -792,11 +794,12 @@ def criar_interface():
 
     root.mainloop()
 
-
+def main():
+    create_db()
+    criar_interface()
 
 
 
 if __name__ == "__main__":
-    create_db()
-    criar_interface()
+    main()
 
