@@ -12,7 +12,7 @@ from PIL import Image
 import re
 import seaborn as sns
 
-#Conversion functions
+# Conversion functions
 def Celsius_to_Fahrenheit(celsius):
     """
         Convert temperature from Celsius to Fahrenheit.
@@ -27,7 +27,7 @@ def MetersPerSecond_to_KilometersPerHour(MetersPerSecond):
     return MetersPerSecond * 3.6
 
 
-#Database functions
+# Database functions
 def create_db():
     """
         Create the weather_data database table if it does not exist.
@@ -191,6 +191,9 @@ def get_weather_data(api_key, cidade, unidade):
     return weather_data
 
 def store_weather_data(cidade):
+    """
+        Collects and stores weather data for the specified city in a SQLite database.
+    """
     conn = sqlite3.connect('weather_data.db')
     c = conn.cursor()
     while True:
@@ -202,6 +205,9 @@ def store_weather_data(cidade):
         time.sleep(60)  # Colects data every 60 seconds
 
 def start_data_collection(cidade):
+    """
+        Starts a background thread to collect and store weather data for the specified city.
+    """
     thread = threading.Thread(target=store_weather_data,args=(cidade,), daemon=True)
     thread.start()
 
@@ -433,7 +439,7 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
     server.quit()
 
 
-#Interface
+# Interface
 def criar_interface():
     """
         Create the user interface for collecting weather data and displaying it.
@@ -686,8 +692,6 @@ def criar_interface():
         label_email = ctk.CTkLabel(master=weather_interface,text=f"Email do usuário: {email}", font=("Roboto Bold", 16))
         label_email.place(x=20,y=340)
 
-        #ctk.CTkLabel(master=weather_interface,text=f"Nome: {nome}\nEmail: {email}\nTemperatura:{temp_unit}\nVento:{wind_speed_unit}",bg_color="#297CAA").pack(padx=10,pady=10)
-
         weather_image = ctk.CTkLabel(master=weather_interface, text="",image=ctk.CTkImage(dark_image=clouds_and_sun_image_data,light_image=clouds_and_sun_image_data,size=(65,65)))
         weather_image.place(x=15,y=100)
 
@@ -740,10 +744,7 @@ def criar_interface():
     ctk_label_desc.pack(anchor="w", padx=(25, 0))
 
     entry_nome = ctk.CTkEntry(master=frame, placeholder_text="O seu nome", width=225, placeholder_text_color='#757272',text_color="#303030",fg_color="#EEEEEE",border_color='#757272',border_width=2)
-    #root.update()
-    #entry_nome.focus_set()  # foca o cursor em "Nome" ao abrir
     entry_nome.pack(anchor="w", padx=(25, 0), pady=(10,0))
-
 
     entry_email = ctk.CTkEntry(master=frame, placeholder_text="Oseuemail@gmail.com", width=225, placeholder_text_color='#757272',text_color="#303030", fg_color="#EEEEEE", border_color='#757272', border_width=2)
     entry_email.pack(anchor="w", padx=(25, 0), pady=(10,0))
