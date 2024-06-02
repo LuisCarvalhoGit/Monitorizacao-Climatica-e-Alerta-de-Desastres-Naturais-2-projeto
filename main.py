@@ -377,8 +377,8 @@ def plot_data(cidade):
     # Extracts data for plotting
     timestamps = [datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S') for row in rows]
     temperatures = [row[2] for row in rows]
-    humidities = [row[3] for row in rows]
-    pressures = [row[4] for row in rows]
+    humidities = [row[5] for row in rows]
+    pressures = [row[7] for row in rows]
 
     # Create figures for plotting
     plt.figure(figsize=(7, 6),num="Gráficos")
