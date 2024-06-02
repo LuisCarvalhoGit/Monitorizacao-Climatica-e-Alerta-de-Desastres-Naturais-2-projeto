@@ -13,7 +13,7 @@ import re
 import seaborn as sns
 
 #Conversion functions
-def celsius_to_fahrenheit(celsius):
+def Celsius_to_Fahrenheit(celsius):
     """
         Convert temperature from Celsius to Fahrenheit.
     """
@@ -160,32 +160,32 @@ def print_db():
 
     conn.close()
 
+
 # Weather data functions
 def get_weather_data(api_key, cidade, unidade):
     """
         Fetch weather data from OpenWeatherMap API for a given city.
     """
     base_url = "https://api.openweathermap.org/data/2.5/weather?"
-    url= base_url + "appid=" + api_key + "&q=" + cidade + "&units=" + unidade
+    url = base_url + "appid=" + api_key + "&q=" + cidade + "&units=" + unidade
 
     response = requests.get(url).json()
 
-    weather_data = {}
 
-    if response['cod'] == '404':
-        print("Cidade nao encontrada")
-    else:
-        weather_data['temp'] = int(response['main']['temp'])
-        weather_data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        weather_data['temp_feels_like'] = round(response['main']['feels_like'])
-        weather_data['wind_speed'] = response['wind']['speed']
-        weather_data['humidade'] = response['main']['humidity']
-        weather_data['quant_nuvens'] = response['clouds']['all']
-        weather_data['pressao'] = response['main']['pressure']
-        weather_data['descricao'] = response['weather'][0]['main']
-        weather_data['cidade'] = cidade
+    if response['cod'] != 200:
+        return None
 
-
+    weather_data = {
+        'temp': int(response['main']['temp']),
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'temp_feels_like': round(response['main']['feels_like']),
+        'wind_speed': response['wind']['speed'],
+        'humidade': response['main']['humidity'],
+        'quant_nuvens': response['clouds']['all'],
+        'pressao': response['main']['pressure'],
+        'descricao': response['weather'][0]['main'],
+        'cidade': cidade
+    }
 
 
     return weather_data
@@ -205,19 +205,6 @@ def start_data_collection(cidade):
     thread = threading.Thread(target=store_weather_data,args=(cidade,), daemon=True)
     thread.start()
 
-def get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval):
-    """
-        Fetch weather data multiple times at regular intervals and return as a DataFrame.
-    """
-    weather_data_list = []
-    for _ in range(num_requests):
-        weather_data = get_weather_data(api_key, cidade, unidade)
-        weather_data_list.append(weather_data)
-        time.sleep(interval)
-
-    weather_data_df = pd.DataFrame(weather_data_list)
-
-    return weather_data_df
 
 # Analysis and alert functions
 def calculate_rate_of_change(weather_data_df, column_name):
@@ -424,33 +411,6 @@ def plot_data(cidade):
     plt.show()
 
 
-#data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 10, 7)
-#insert_dataframe_into_db(data_df)
-
-
-
-# Exemplo de uso:
-# weather_data_df = get_multiple_weather_data(api_key, cidade, unidade, num_requests, interval)
-# analyze_weather_data(weather_data_df)
-
-
-#weather_data_df = get_multiple_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", "Vila Real, PT", "metric", 2, 10)
-#print(weather_data_df)
-#analyze_weather_data(weather_data_df)
-#checkDisasters(weather_data_df)
-
-
-
-#   "https://api.openweathermap.org/data/2.5/weather?lat=41.295900&lon=-7.746350&appid=8ba62249b68f6b02f4cc69cae7495cb3" para ver Vila Real, PT em JSON
-
-# Latitule Vila Real,PT -> 41.295900 , Longitude Vila Real,PT -> -7.746350
-
-
-
-
-
-# rrol wold diuu dwdx = App Password
-
 # Email notification function
 def send_notification_to_email(subject, message, to_email, from_email="alertsweather0@gmail.com", passkey="rrol wold diuu dwdx"):
     """
@@ -471,7 +431,6 @@ def send_notification_to_email(subject, message, to_email, from_email="alertswea
 
     # Close the connection to the server
     server.quit()
-
 
 
 #Interface
@@ -510,9 +469,23 @@ def criar_interface():
             error_message_label.configure(text="Email inválido.\nPor favor insira um formato de email válido.")
             return
 
-        # If the name and email are in the correct format, clear the error message and continue with the rest of the function
-        error_message_label.configure(text="")
 
+        # Check if the city field is empty
+        if not cidade:
+            error_message_label.configure(text="")
+            error_message_label.configure(text="Por favor insira uma cidade.")
+            return
+
+        # Fetch weather data
+        weather_data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
+
+        if not weather_data :
+            error_message_label.configure(text="")
+            error_message_label.configure(text="Cidade não encontrada.\nPor favor insira um local válido.")
+            return
+
+        # If the name and email are in the correct format, and the city is valid, clear the error message and continue with the rest of the function
+        error_message_label.configure(text="")
 
         root.iconify()
 
@@ -535,11 +508,11 @@ def criar_interface():
         ash_image_data = Image.open("images/ash.png")
         tornado_image_data = Image.open("images/tornado.png")
 
-        weather_data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
+
 
         if temp_unit == "F":
-            weather_data['temp'] = round(celsius_to_fahrenheit(weather_data['temp']))
-            weather_data['temp_feels_like'] = round(celsius_to_fahrenheit(weather_data['temp_feels_like']))
+            weather_data['temp'] = round(Celsius_to_Fahrenheit(weather_data['temp']))
+            weather_data['temp_feels_like'] = round(Celsius_to_Fahrenheit(weather_data['temp_feels_like']))
 
         if wind_speed_unit == "km/h":
             weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']),1)
@@ -598,8 +571,8 @@ def criar_interface():
             weather_data = get_weather_data("8ba62249b68f6b02f4cc69cae7495cb3", cidade, "metric")
 
             if temp_unit == "F":
-                weather_data['temp'] = round(celsius_to_fahrenheit(weather_data['temp']))
-                weather_data['temp_feels_like'] = round(celsius_to_fahrenheit(weather_data['temp_feels_like']))
+                weather_data['temp'] = round(Celsius_to_Fahrenheit(weather_data['temp']))
+                weather_data['temp_feels_like'] = round(Celsius_to_Fahrenheit(weather_data['temp_feels_like']))
 
             if wind_speed_unit == "km/h":
                 weather_data['wind_speed'] = round(MetersPerSecond_to_KilometersPerHour(weather_data['wind_speed']), 1)
@@ -797,7 +770,6 @@ def criar_interface():
 def main():
     create_db()
     criar_interface()
-
 
 
 if __name__ == "__main__":
